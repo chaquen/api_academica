@@ -22,8 +22,6 @@ class CreateUsuariosTable extends Migration
             $table->string("direccion_usuario")->nullable();
             $table->string("telefono_usuario")->nullable();
             $table->enum("estado_usuario",["0","1"]);
-            $table->string('red');
-            $table->string("id_red");
             $table->integer("fk_id_rol")->unsigned();
             $table->foreign('fk_id_rol')->references('id')->on('roles')->onDelete('cascade');;
             $table->string("password");

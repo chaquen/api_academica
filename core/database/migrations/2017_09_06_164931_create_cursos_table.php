@@ -20,7 +20,7 @@ class CreateCursosTable extends Migration
             $table->datetime("fecha_inicio_curso");
             $table->datetime("fecha_fin_curso");
             $table->integer("fk_id_categoria_curso")->unsigned();
-            $table->foreign('fk_id_categoria_curso')->references('id')->on('categorias_cursos')->onDelete('cascade');;
+            $table->foreign('fk_id_categoria_curso')->references('id')->on('categorias_cursos')->onDelete('cascade');
             $table->enum("tipo_curso",["pago","gratis","otro"]);
             $table->enum("estado_curso",["0","1"])->default(1);
             $table->timestamps();

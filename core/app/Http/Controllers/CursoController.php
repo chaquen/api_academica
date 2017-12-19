@@ -18,7 +18,9 @@ use App\Evaluacion;
 
 use App\Util;
 
+use Carbon\Carbon;
 
+use App\Random;
 
 
 class CursoController extends Controller
@@ -291,18 +293,21 @@ class CursoController extends Controller
 
     public function mostrar_arbol_modulos($id_curso){
 
-
-          $cur=Curso::where("id","=",$id_curso)->get();
+          //var_dump(explode("=", $id_curso)[1]);
+          $id_curso=explode("=", $id_curso)[1];
+          $cur=DB::table("cursos")->where("id","=",$id_curso)->get();
+          //var_dump($cur);
           $arr_arbol=[
                     ["title"=>strtoupper($cur[0]->nombre_curso),"key"=>1],
 
           ];
 
-          $mod=Modulo::where("fk_id_curso","=","$id_curso")->get();
-
+          $mod=Modulo::where("fk_id_curso","=",$id_curso)->get();
+          //var_dump($mod);
           $act=array();
           $a=1;
           foreach ($mod as $key => $value) {
+
               $act=Actividades::where("fk_id_modulo_curso","=",$value->id)->get();
               $child=array();
               $i=0;
@@ -367,5 +372,38 @@ class CursoController extends Controller
                                     ]*/
  
     }
+    public function crear_pines($curso,$numero_pines){
+        
+        $arr=[];
 
+
+
+        for($i=0;$i<=$numero_pines-1;$i++){
+
+              $pin=Random::AlphaNumeric(6);
+              $arr[$i]=["fk_id_curso"=>$curso,
+                        "pin"=>$pin,
+                        "estado"=>"activo",
+                        "updated_at"=>Carbon::now("America/Bogota"),
+                        "created_at"=>Carbon::now("America/Bogota")];
+        }
+
+        DB::table("pines")
+            ->insert(
+              $arr
+            );
+        return response()->json(["mensaje"=>"Pines generados","respuesta"=>true]);    
+    }
+
+    public function consultar_pin($pin){
+      $dd=DB::table("pines")
+        ->where([["pin","=",$pin],["estado","=","activo"]])
+        ->get();
+       if(count($dd)>0){
+          return response()->json(["mensaje"=>"Pin aprovado","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso]);   
+       }else{
+        return response()->json(["mensaje"=>"Pin NO  es valido","respuesta"=>false]);
+       } 
+      
+    }
 }

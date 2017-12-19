@@ -122,3 +122,6 @@ Route::get("modulos_del_cursos/{id_curso}","CursoController@mostrar_arbol_modulo
 Route::post("subir_archivos","ActividadController@subir_archivo");
 Route::get("eventos/{id_curso}","ActividadController@eventos");
 Route::get("evaluacion_de_alumno/{id_evaluacion}/{id_usuario}","EvaluacionController@evaluacion_de_alumno");
+
+Route::get("crear_pines/{curso}/{numero_pines}/","CursoController@crear_pines");
+Route::get("consultar_pin/{pin}","CursoController@consultar_pin");
