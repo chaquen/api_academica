@@ -74,11 +74,16 @@ class CursoController extends Controller
                                         ]);
                 //CREAR CARPETA PARA LOS CURSOS
                 //var_dump($cur);
-                if(!is_dir("recursos/cursos/".$datos["datos"]->nombre_curso)){
+                $nom__alt=explode(" ",$datos["datos"]->nombre_curso);
+                $nom_carpeta="";
+                foreach ($nom__alt as $key => $value) {
+                     $nom_carpeta.=$value; 
+                }
+                if(!is_dir("recursos/cursos/".$nom_carpeta)){
                   
                   
 
-                    if(mkdir("recursos/cursos/".$datos["datos"]->nombre_curso, 0777)){
+                    if(mkdir("recursos/cursos/".$nom_carpeta, 0777)){
                         $i=1;
                         foreach ($datos["datos"]->modulos as $key => $value) {
                             //AQUI REGISTRAR MODULOS
@@ -323,7 +328,7 @@ class CursoController extends Controller
   
                   }
                   
-                   $child[$i]=["title"=>$v->nombre_actividad,"key"=>$a,"valor"=>$v->id,"tipo"=>$v->tipo_actividad,"recurso"=>$v->actividad_recurso];
+                   $child[$i]=["title"=>$v->nombre_actividad,"key"=>$a,"valor"=>$v->id,"tipo"=>$v->tipo_actividad,"recurso"=>$v->actividad_recurso,"nombre_curso"=>$cur[0]->nombre_curso  ];
 
                   //array_push($child,["title"=>"nombre_actividad","key"=>"a","valor"=>"","tipo"=>"tipo_actividad","recurso"=>"actividad_recurso"]);
                   $i++;

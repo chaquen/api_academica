@@ -53,7 +53,7 @@ class UsuarioController extends Controller
         $al=Usuario::firstOrCreate(["nombre_usuario"=>$datos["datos"]->nombre_usuario,
                                     "apellido_usuario"=>$datos["datos"]->apellido_usuario,
                                     "fecha_nacimiento"=>$datos["datos"]->fecha_nacimiento,
-                                    "correo_usuario"=>$datos["datos"]->correo_usuario[0],
+                                    "correo_usuario"=>$datos["datos"]->correo_usuario,
                                     "documento_usuario"=>$datos["datos"]->documento_usuario,
                                     "telefono_usuario"=>$datos["datos"]->telefono_usuario,
                                     "direccion_usuario"=>$datos["datos"]->direccion_usuario,
@@ -149,23 +149,23 @@ class UsuarioController extends Controller
 
 
         $datos=Util::decodificar_json($request->get("datos"));
+        //var_dump($datos);
         Usuario::where("id",$id)
                             ->update(["nombre_usuario"=>$datos["datos"]->nombre_usuario,
                                       "apellido_usuario"=>$datos["datos"]->apellido_usuario,
                                       "correo_usuario"=>$datos["datos"]->correo_usuario,
                                       "telefono_usuario"=>$datos["datos"]->telefono_usuario,
                                       "direccion_usuario"=>$datos["datos"]->direccion_usuario,
-                                      "documento_usuario"=>$datos["datos"]->documento_usuario,
+                                      "documento_usuario"=>$datos["datos"]->documento_usuario
                                       ]);
+         //var_dump(property_exists($datos["datos"], "password"));                   
+        if(property_exists($datos["datos"], "password")){
 
-                            if(property_exists($datos["datos"], "password")){
-
-                                Usuario::where("id",$id)
-                                    ->update([
-                                                "password"=>$datos["datos"]->password                                             
-                                              ]);
-                            }
-
+             Usuario::where("id",$id)
+                     ->update([
+                              "password"=>$datos["datos"]->password                                             
+                             ]);
+        }
 
         return response()->json(["mensaje"=>"Recurso actualizado","respuesta"=>TRUE,"datos"=>Usuario::where("id",$id)->get()]);  
     }

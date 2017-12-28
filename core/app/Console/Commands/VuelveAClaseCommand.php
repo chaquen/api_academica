@@ -57,7 +57,7 @@ class VuelveAClaseCommand extends Command
          foreach ($us as $key => $value) {
             $al=Usuario::where("correo_usuario","=",$value->email)->get();
            
-            var_dump($value->email);
+            //var_dump($value->email);
             Util::enviar_email("email.vuelve_a_clase",["nombre"=>$al[0]->nombre_alumno],"academia@oelsas.com","El equipo OEL","Te estamos esperando, vuelve pronto",$value->email,$al[0]->nombre_alumno);    
          }
          
