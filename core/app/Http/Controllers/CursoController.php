@@ -8,19 +8,19 @@ use App\Http\Requests;
 
 use DB;
 
-use App\Curso;
+use App\Models\Curso;
 
-use App\Actividades;
+use App\Models\Actividades;
 
-use App\Modulo;
+use App\Models\Modulo;
 
-use App\Evaluacion;
+use App\Models\Evaluacion;
 
-use App\Util;
+use App\Functions\Util;
 
 use Carbon\Carbon;
 
-use App\Random;
+use App\Functions\Random;
 
 
 class CursoController extends Controller
@@ -100,7 +100,7 @@ class CursoController extends Controller
                                     if($v->tipo_recurso!="evaluacion"){
 
                                         if($v->tipo_recurso=="documento"){
-                                             copy("recursos/documento/".$v->recurso,"recursos/cursos/".$datos["datos"]->nombre_curso."/".$v->recurso);                            
+                                             copy("recursos/documento/".$v->recurso,"recursos/cursos/".$nom_carpeta."/".$v->recurso);                            
                                         }
 
                                         Actividades::create(["nombre_actividad"=>$v->contenido,
@@ -154,6 +154,7 @@ class CursoController extends Controller
         $i=0;
         $e=0;
         foreach ($val as $key => $value) {
+
             $arr[$i]=$value;
             if($i==2){
                
@@ -230,8 +231,12 @@ class CursoController extends Controller
             //echo "--";
             $array_cursos=$arr_cur;
             //var_dump($array_cursos);
-
-        return response()->json(["datos"=>$array_cursos,"mensaje"=>"Curso encontradas","respuesta"=>TRUE]);
+        if(count($array_cursos)>0){
+          return response()->json(["datos"=>$array_cursos,"mensaje"=>"Curso encontradas","respuesta"=>TRUE]);  
+        }else{
+          return response()->json(["mensaje"=>"Curso no encontradas","respuesta"=>FALSE]);  
+        }    
+        
     }
 
     /**
@@ -267,6 +272,15 @@ class CursoController extends Controller
                                             "tipo_curso"=>$datos["datos"]->tipo_curso
 
                                         ]);
+        foreach ($datos["datos"]->modulos as $key => $value) {
+          if(property_exists ( $value, "id" )){
+            var_dump($value->id);                    
+          
+          }else{
+            var_dump($value);                    
+          }
+        }
+
         return response()->json(["mensaje"=>"Recurso actualizado","respuesta"=>TRUE]);                            
     }
 

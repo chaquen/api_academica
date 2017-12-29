@@ -25,6 +25,7 @@ class CreateUsuariosTable extends Migration
             $table->integer("fk_id_rol")->unsigned();
             $table->foreign('fk_id_rol')->references('id')->on('roles')->onDelete('cascade');;
             $table->string("password");
+            $table->string("cambio_pass",6);
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

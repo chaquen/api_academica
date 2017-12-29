@@ -107,6 +107,7 @@ Route::resource("respuestas","RespuestaController");
 Route::resource("respuestas_de_usuario","RespuestasDelUsuarioController");
 Route::resource("evaluacion","EvaluacionController");
 Route::resource("modulo_curso","ModuloController@modulos_de_curso");
+Route::resource("modulos","ModuloController");
 Route::get("usuarios_por_curso/{curso}","UsuarioController@alumnos_del_curso");
 Route::get("evaluaciones_por_curso/{id_curso}","EvaluacionController@evaluaciones_por_curso");
 
@@ -115,6 +116,9 @@ Route::get("resultado_evaluacion/{id_evaluacion}/{id_alumno}","EvaluacionControl
 Route::post("usuariosFB","UsuarioController@loginFacebook");
 Route::post("usuariosGO","UsuarioController@loginGoogle");
 Route::post("login","UsuarioController@login");
+Route::post("recuperar_pass","UsuarioController@recuperar_pass");
+Route::post("cambiar_pass_recuparada","UsuarioController@cambiar_pass_recuparada");
+Route::get("validar_cambio_pass/{id_usuario}/{pin_clave}","UsuarioController@validar_cambio_pass");
 Route::resource("categorias","CategoriasCursosController");
 Route::resource("cursos","CursoController");
 Route::resource("actividades","ActividadController");

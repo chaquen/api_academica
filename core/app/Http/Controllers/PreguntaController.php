@@ -6,11 +6,11 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\Preguntas;
+use App\Models\Preguntas;
 
-use App\Respuestas;
+use App\Models\Respuestas;
 
-use App\Util;
+use App\Funtions\Util;
 
 class PreguntaController extends Controller
 {

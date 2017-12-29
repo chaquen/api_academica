@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\Actividades;
+use App\Models\Actividades;
 
-use App\Util;
+use App\Functions\Util;
 
 use DB;
 
@@ -123,6 +123,12 @@ class ActividadController extends Controller
     public function destroy($id)
     {
         //
+        
+         DB::table("actividades")                    
+                    ->where("actividades.id","=",$id)
+                    ->delete(); 
+        return response()->json(["respuesta"=>true,"mensaje"=>"actividad eliminada"]);         
+
     }
 
     public function subir_archivo(Request $request){

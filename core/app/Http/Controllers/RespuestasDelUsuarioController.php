@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\RespuestasDelUsuario;
+use App\Models\RespuestasDelUsuario;
 
-use App\Util;
+use App\Functions\Util;
 
 use DB;
 class RespuestasDelUsuarioController extends Controller

@@ -6,13 +6,13 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\Evaluaciones;
+use App\Models\Evaluaciones;
 
-use App\PreguntasEvaluacion;
+use App\Models\PreguntasEvaluacion;
 
-use App\Respuestas;
+use App\Models\Respuestas;
 
-use App\Util;
+use App\Functions\Util;
 
 use DB;
 

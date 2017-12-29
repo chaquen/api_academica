@@ -8,7 +8,7 @@ use App\Http\Requests;
 
 use App\Detalle_Preguntas_Evaluacion;
 
-use App\Util;
+use App\Functions\Util;
 
 
 

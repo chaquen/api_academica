@@ -6,11 +6,11 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\Modulo;
+use App\Models\Modulo;
 
-use App\Preguntas;
+use App\Models\Preguntas;
 
-use App\Util;
+use App\Functions\Util;
 
 class ModuloController extends Controller
 {
@@ -46,7 +46,7 @@ class ModuloController extends Controller
     {
         //
         $datos=Util::decodificar_json($request->get("datos"));
-        Modulo::create([]);
+        Modulo::create(["nombre_modulo"=>$datos,"descripcion_modulo","fk_id_curso"]);
         return response()->json(["repsuesta"=>TRUE,"mensaje"=>"modulo registrado"]);
     }
 
@@ -101,14 +101,14 @@ class ModuloController extends Controller
     {
         //
         $datos=Util::decodificar_json($request->get("datos"));
-        $e=Preguntas::where("id",$id);
+        $e=Modulo::where("id",$id);
         if($e->estado_modulo==1){
-            Preguntas::where("id",$id)
+            Modulo::where("id",$id)
                             ->where("estado_modulo","=",1)
                             ->update(["estado_modulo"=>0]);       
                 return response()->json(["mensaje"=>"Recurso eliminado","respuesta"=>TRUE]);                                        
         }else{
-            Preguntas::where("id",$id)
+            Modulo::where("id",$id)
                             ->where("estado_modulo","=",0)
                             ->update(["estado_modulo"=>1]);  
                 return response()->json(["mensaje"=>"Recurso habilitado","respuesta"=>true]);                                             

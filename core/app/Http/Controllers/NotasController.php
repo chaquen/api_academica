@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\Notas;
+use App\Models\Notas;
 
-use App\Util;
+use App\Functions\Util;
 
 class NotasController extends Controller
 {

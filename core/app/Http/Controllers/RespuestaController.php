@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\Respuestas;
+use App\Models\Respuestas;
 
-use App\Util;
+use App\Functions\Util;
 
 class RespuestaController extends Controller
 {

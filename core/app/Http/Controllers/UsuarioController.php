@@ -8,11 +8,13 @@ use App\Http\Requests;
 
 use DB;
 
-use App\Usuario;
+use App\Models\Usuario;
 
-use App\Detalle_Usuario_Curso;
+use App\Models\Detalle_Usuario_Curso;
 
-use App\Util;
+use App\Functions\Util;
+
+use App\Functions\Random;
 
 class UsuarioController extends Controller
 {
@@ -245,6 +247,9 @@ class UsuarioController extends Controller
     }
 
     public function login(Request $request){
+            //echo "ip del cliente ";
+            //var_dump($request->ip());
+
             $datos=Util::decodificar_json($request->get("datos"));
             //var_dump($datos["datos"]);
             $al=DB::table('usuarios')
@@ -283,5 +288,72 @@ class UsuarioController extends Controller
                 
         return response()->json(["mensaje"=>"Alumnos encontrados","respuesta"=>TRUE,"datos"=>$us]);    
     } 
+
+    public function recuperar_pass(Request $request){
+
+         $datos=Util::decodificar_json($request->get("datos"));
+
+         $al=DB::table('usuarios')
+                                ->join("roles","roles.id","=","usuarios.fk_id_rol")
+                                ->where(
+                                    "correo_usuario","=",$datos["datos"]->email                                    
+                                )
+                                ->select("usuarios.nombre_usuario",
+                                    "usuarios.apellido_usuario",
+                                    "usuarios.correo_usuario",
+                                    "usuarios.direccion_usuario",
+                                    "usuarios.documento_usuario",
+                                    "usuarios.telefono_usuario",
+                                    "usuarios.fecha_nacimiento",
+                                    "usuarios.fk_id_rol",
+                                    "roles.nombre_rol",
+                                    "usuarios.id")
+                                ->get();
+            
+            if(count($al)==0){ 
+                return response()->json(["mensaje"=>"Lo sentimos pero el correo <b>".$datos["datos"]->email."</b> NO esta registrado","respuesta"=>FALSE]);    
+            }else{
+                $pin_clave=Random::AlphaNumeric(6);
+                Usuario::where("id","=",$al[0]->id)->update(["updated_at"=>$datos["hora_cliente"],"password"=>$pin_clave,"cambio_pass"=>$pin_clave]);
+                Util::enviar_email("email.olvido_clave",["nombre"=>$al[0]->nombre_usuario,"url"=>$datos["datos"]->url."recuperar_clave.html?us=".$al[0]->id."&pc=".$pin_clave],"academia@oelsas.com","Centro de ayuda OEL","Olvidaste tu contraseña",$datos["datos"]->email,$al[0]->nombre_usuario." ".$al[0]->apellido_usuario);
+
+                return response()->json(["mensaje"=>"Hemos enviado un correo electronico a esta cuenta de correo, <b>".$datos["datos"]->email."</b>,".$al[0]->nombre_usuario." por favor sigue las instrucciones para actualizar tu clave ","respuesta"=>TRUE,"datos"=>$al[0]]);    
+            }   
+    }
+
+    public function validar_cambio_pass($id_usuario,$pin_clave){
+        $us=Usuario::where([["id","=",$id_usuario],["cambio_pass","LIKE",$pin_clave]])->get();
+        if(count($us)==0){
+            return response()->json(["mensaje"=>"Este no es un pin valido para la recuperacion intentalo nuevamnete o escribe al area de soporte para recibir ayuda","respuesta"=>FALSE]);   
+        }else{
+
+            return response()->json(["mensaje"=>"PIN VALIDO","respuesta"=>TRUE,"datos"=>$us[0]]);   
+        }
+    }
+
+    public function cambiar_pass_recuparada(Request $request){
+            $datos=Util::decodificar_json($request->get("datos"));
+         
+            Usuario::where([["id","=",$datos["datos"]->id],["cambio_pass","LIKE",$datos["datos"]->pin_clave]])
+                        ->update(["updated_at"=>$datos["hora_cliente"],"password"=>$datos["datos"]->clave,"cambio_pass"=>""]);
+            $us=Usuario::join("roles","roles.id","=","usuarios.fk_id_rol")
+                             ->where("usuarios.id","=",$datos["datos"]->id)
+                             ->select("usuarios.nombre_usuario",
+                                    "usuarios.apellido_usuario",
+                                    "usuarios.correo_usuario",
+                                    "usuarios.direccion_usuario",
+                                    "usuarios.documento_usuario",
+                                    "usuarios.telefono_usuario",
+                                    "usuarios.fecha_nacimiento",
+                                    "usuarios.fk_id_rol",
+                                    "roles.nombre_rol",
+                                    "usuarios.id")
+                             ->get();
+                        
+            return response()->json(["mensaje"=>"Bienvenido","respuesta"=>TRUE,"datos"=>$us[0]]);                    
+
+    }
+
+    
 
 }
