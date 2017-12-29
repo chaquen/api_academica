@@ -10,7 +10,7 @@ use App\Models\Preguntas;
 
 use App\Models\Respuestas;
 
-use App\Funtions\Util;
+use App\Functions\Util;
 
 class PreguntaController extends Controller
 {

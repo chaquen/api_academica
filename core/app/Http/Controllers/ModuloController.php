@@ -46,8 +46,10 @@ class ModuloController extends Controller
     {
         //
         $datos=Util::decodificar_json($request->get("datos"));
-        Modulo::create(["nombre_modulo"=>$datos,"descripcion_modulo","fk_id_curso"]);
-        return response()->json(["repsuesta"=>TRUE,"mensaje"=>"modulo registrado"]);
+        
+        $m=Modulo::firstOrCreate(["nombre_modulo"=>$datos["datos"]->nombre_modulo,"descripcion_modulo"=>$datos["datos"]->nombre_modulo,"fk_id_curso"=>$datos["datos"]->fk_id_curso,"fecha_inicio_modulo"=>$datos["datos"]->fecha_inicio_modulo,"fecha_fin_modulo"=>$datos["datos"]->fecha_fin_modulo]);
+     
+        return response()->json(["respuesta"=>TRUE,"mensaje"=>"modulo registrado","datos"=>$m->id]);
     }
 
     /**
@@ -100,20 +102,13 @@ class ModuloController extends Controller
     public function destroy($id)
     {
         //
-        $datos=Util::decodificar_json($request->get("datos"));
-        $e=Modulo::where("id",$id);
-        if($e->estado_modulo==1){
+       
+ 
             Modulo::where("id",$id)
-                            ->where("estado_modulo","=",1)
-                            ->update(["estado_modulo"=>0]);       
-                return response()->json(["mensaje"=>"Recurso eliminado","respuesta"=>TRUE]);                                        
-        }else{
-            Modulo::where("id",$id)
-                            ->where("estado_modulo","=",0)
-                            ->update(["estado_modulo"=>1]);  
-                return response()->json(["mensaje"=>"Recurso habilitado","respuesta"=>true]);                                             
-
-        }
+                           
+                            ->delete();       
+            return response()->json(["mensaje"=>"Recurso eliminado","respuesta"=>TRUE]);                                        
+        
     }
 
     public function modulos_de_curso($id){

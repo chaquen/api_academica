@@ -48,11 +48,11 @@ class ActividadController extends Controller
          $datos=Util::decodificar_json($request->get("datos"));
          Actividades::create(['nombre_actividad'=>$datos["datos"]->nombre_actividad,
                             'tipo_actividad'=>$datos["datos"]->tipo_evento,
-                            'activo_desde'=>$datos["datos"]->fecha_inicio_evento." ".$datos["datos"]->hora_inicio_evento,
-                            'activo_hasta'=>$datos["datos"]->fecha_fin_evento." ".$datos["datos"]->hora_fin_evento,
+                            'activo_desde'=>$datos["datos"]->activo_desde." ".$datos["datos"]->hora_inicio_evento,
+                            'activo_hasta'=>$datos["datos"]->activo_hasta." ".$datos["datos"]->hora_fin_evento,
                             'estado_actividad'=>"1",
                             'actividad_recurso'=>$datos["datos"]->url_evento,
-                            'fk_id_modulo_curso'=>$datos["datos"]->id_modulo]);
+                            'fk_id_modulo_curso'=>$datos["datos"]->fk_id_modulo_curso]);
          return response()->json(["mensaje"=>"Evento registrado","respuesta"=>true]);
     }
 
@@ -141,7 +141,7 @@ class ActividadController extends Controller
 
             $datos=Util::decodificar_json($request->get("datos"));
             
-            $des="recursos/documento";
+            $des="recursos/cursos/".$datos["datos"]->nombre_carpeta;
             
             if($file->move($des,$datos["datos"]->nombre_archivo)){
                 echo json_encode(["respuesta"=>true,"mensaje"=>"archivo guardado"]);

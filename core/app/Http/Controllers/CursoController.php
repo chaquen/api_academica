@@ -22,6 +22,8 @@ use Carbon\Carbon;
 
 use App\Functions\Random;
 
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class CursoController extends Controller
 {
@@ -153,22 +155,27 @@ class CursoController extends Controller
         $arr_final=[];
         $i=0;
         $e=0;
+
         foreach ($val as $key => $value) {
+            //var_dump($value);
 
             $arr[$i]=$value;
+           // var_dump($arr);
             if($i==2){
-               
+             
+                $arr[2].=" %";
+              //var_dump($arr[$i]);
                  
-            $arr_final[$e]=$arr;
-               $e++;
-               $arr=[];    
-               $i=0;
+              $arr_final[$e]=$arr;
+                 $e++;
+                 $arr=[];    
+                 $i=0;
             }else{
                  $i++;
             }
            
         }
-
+       // var_dump($arr_final);
         $cur=DB::table("cursos")
                 //->join("modulos","modulos.fk_id_curso","=","cursos.id")
                 //->join("","","=","") 
@@ -261,6 +268,10 @@ class CursoController extends Controller
     {
         //
         $datos=Util::decodificar_json($request->get("datos"));
+        $n_c=Curso::where("id",$id)->get();
+        if(rename("recursos/cursos/".join("",explode(" ", $n_c[0]->nombre_curso)),"recursos/cursos/".join("",explode(" ", $datos["datos"]->nombre_curso)))){
+          //echo "carpeta renombrada";
+        }
         Curso::where("id",$id)
                             ->update([
                                             "nombre_curso"=>$datos["datos"]->nombre_curso,
@@ -274,10 +285,10 @@ class CursoController extends Controller
                                         ]);
         foreach ($datos["datos"]->modulos as $key => $value) {
           if(property_exists ( $value, "id" )){
-            var_dump($value->id);                    
+            //var_dump($value->id);                    
           
           }else{
-            var_dump($value);                    
+            //var_dump($value);                    
           }
         }
 
@@ -411,7 +422,7 @@ class CursoController extends Controller
             ->insert(
               $arr
             );
-        return response()->json(["mensaje"=>"Pines generados","respuesta"=>true]);    
+        return response()->json(["mensaje"=>"Pines generados","respuesta"=>true,"datos"=>$arr]);    
     }
 
     public function consultar_pin($pin){
@@ -419,10 +430,155 @@ class CursoController extends Controller
         ->where([["pin","=",$pin],["estado","=","activo"]])
         ->get();
        if(count($dd)>0){
-          return response()->json(["mensaje"=>"Pin aprovado","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso]);   
+          return response()->json(["mensaje"=>"Pin aprovado","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso,"datos"=>$dd[0]]);   
        }else{
         return response()->json(["mensaje"=>"Pin NO  es valido","respuesta"=>false]);
        } 
       
     }
+    public function consultar_pin_admin($curso,$pin){
+
+      if($pin=="*"){
+              if($curso==0){
+                $dd=DB::table("pines")
+                  ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                  ->select("cursos.nombre_curso",
+                            "pines.fk_id_curso",
+                            "pines.id",
+                            "pines.pin",
+                            "pines.estado")
+                  ->get();
+                
+              }else{
+                $dd=DB::table("pines")
+                 ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                  ->where("fk_id_curso","=",$curso)
+                  ->select("cursos.nombre_curso",
+                            "pines.fk_id_curso",
+                            "pines.id",
+                            "pines.pin",
+                            "pines.estado")
+                  ->get();
+               
+              }
+
+
+               if(count($dd)>0){
+                  return response()->json(["mensaje"=>"Pin encontrado","respuesta"=>true,"datos"=>$dd]);   
+               }else{
+                  return response()->json(["mensaje"=>"Pin NO es valido","respuesta"=>false]);
+               } 
+              
+            
+      }else{
+             
+              if($curso==0){
+                $dd=DB::table("pines")
+               ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                ->where([["pin","=",$pin]])
+                ->get();
+ 
+              }else{
+                $dd=DB::table("pines")
+                ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                ->where([["pin","=",$pin],["fk_id_curso","=",$curso]])
+                ->get();
+
+              }
+               
+
+               if(count($dd)>0){
+                  return response()->json(["mensaje"=>"Pin encontrado","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso,"datos"=>$dd]);   
+               }else{
+                  return response()->json(["mensaje"=>"Pin NO  es valido","respuesta"=>false]);
+               } 
+              
+            
+      }
+    }  
+      
+    public function eliminar_pin($id){
+       $dd=DB::table("pines")
+                  ->where("id","=",$id)
+                  ->delete();
+      return response()->json(["mensaje"=>"Pin elimiando","respuesta"=>true]);   
+    }  
+
+   public function exportar_pines($curso,$pin){
+
+    if($pin=="*"){
+              if($curso==0){
+                $dd=DB::table("pines")
+                  ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                  ->select("cursos.nombre_curso",
+                            "pines.fk_id_curso",
+                            "pines.id",
+                            "pines.pin",
+                            "pines.estado")
+                  ->get();
+                
+              }else{
+                $dd=DB::table("pines")
+                 ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                  ->where("fk_id_curso","=",$curso)
+                  ->select("cursos.nombre_curso",
+                            "pines.fk_id_curso",
+                            "pines.id",
+                            "pines.pin",
+                            "pines.estado")
+                  ->get();
+               
+              }
+
+
+              
+            
+      }else{
+             
+              if($curso==0){
+                $dd=DB::table("pines")
+               ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                ->where([["pin","=",$pin]])
+                ->get();
+ 
+              }else{
+                $dd=DB::table("pines")
+                ->join("cursos","cursos.id","=","pines.fk_id_curso")
+                ->where([["pin","=",$pin],["fk_id_curso","=",$curso]])
+                ->get();
+
+              }
+               
+
+               
+            
+      }
+      //var_dump($dd);
+        $arr=[];
+        foreach ($dd as $key => $value) {
+          $arr[$key]=(array)$value;
+          
+        }
+        //var_dump(trim(substr(base_path(),0,-4)."recursos\ ")."exportacion");
+                    Excel::create("pines", function($excel) use($arr){
+                         // use($datos->datos->nombre_reporte)   
+                        $excel->sheet('pines',function($sheet) use($arr){
+                                //var_dump($id);
+                                /*$datos=Producto::where('nombre_producto','LIKE','A%')
+                                                                        ->limit('10')
+                                                                        ->get();*/
+
+                                //var_dump($reporte["datos"]);
+                           
+                                $sheet->fromArray($arr);
+                        });
+                    })->store('xls', trim(substr(base_path(),0,-4)."recursos\ ")."exportacion");
+
+    if(count($dd)>0){
+         return response()->json(["mensaje"=>"Pin encontrado :)","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso,"datos"=>$dd,"archivo"=>"pines.xls"]);   
+    }else{
+         return response()->json(["mensaje"=>"Pin NO  es valido","respuesta"=>false]);
+    } 
+              
+   }
 }

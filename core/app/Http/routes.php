@@ -129,3 +129,6 @@ Route::get("evaluacion_de_alumno/{id_evaluacion}/{id_usuario}","EvaluacionContro
 
 Route::get("crear_pines/{curso}/{numero_pines}/","CursoController@crear_pines");
 Route::get("consultar_pin/{pin}","CursoController@consultar_pin");
+Route::get("consultar_pin_admin/{curso}/{pin}","CursoController@consultar_pin_admin");
+Route::get("exportar_pines/{curso}/{pin}","CursoController@exportar_pines");
+Route::delete("eliminar_pin/{id}","CursoController@eliminar_pin");
