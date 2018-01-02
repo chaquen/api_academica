@@ -100,6 +100,7 @@ Route::get("consulta_inicial_alumno/{usuario}",function($usuario){
 			
 });
 Route::resource("usuarios","UsuarioController");
+Route::resource("usuarios_index","UsuarioController@index_alumno");
 Route::resource("agenda","ActividadController");
 Route::resource("preguntas","PreguntaController");
 Route::get("preguntas_tipo/{tipo}","PreguntaController@preguntas_tipo");
@@ -132,3 +133,4 @@ Route::get("consultar_pin/{pin}","CursoController@consultar_pin");
 Route::get("consultar_pin_admin/{curso}/{pin}","CursoController@consultar_pin_admin");
 Route::get("exportar_pines/{curso}/{pin}","CursoController@exportar_pines");
 Route::delete("eliminar_pin/{id}","CursoController@eliminar_pin");
+Route::resource("detalle_usuario_curso","DetalleUsuarioCursoController");

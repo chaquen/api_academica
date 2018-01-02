@@ -53,7 +53,9 @@ class EvaluacionController extends Controller
         $datos=Util::decodificar_json($request->get("datos"));
          //var_dump($datos["datos"]);
          //var_dump($datos["datos"]->fk_id_actividad);
-        $e=Evaluaciones::firstOrCreate([
+         $ac=DB::table("actividades")->where("id","=",$datos["datos"]->fk_id_actividad)->get();
+        if(count($ac)>0){
+            $e=Evaluaciones::firstOrCreate([
 
                                     "tipo_evaluacion"=>$datos["datos"]->tipo_evaluacion,
                                     "fk_id_actividad"=>$datos["datos"]->fk_id_actividad,
@@ -61,16 +63,41 @@ class EvaluacionController extends Controller
                                     "fecha_evaluacion_fin"=>$datos["datos"]->fecha_evaluacion_fin
                                                                     
                                 ]);
-        //registrar las preguntas
+            //registrar las preguntas
+            
+            foreach ($datos["datos"]->preguntas as $key => $value) {
+                # code...
+                   
+                    PreguntasEvaluacion::create([
+                        "fk_id_pregunta"=>$value[0]->id,
+                        "fk_id_evaluacion"=>$e->id,
+                    ]);
+            }    
+        }else{
+
+             $ac=DB::table("actividades")
+                ->InsertGetId(["nombre_actividad"=>$datos["datos"]->nombre_evaluacion,"tipo_actividad"=>"evaluacion","activo_desde"=>$datos["datos"]->fecha_evaluacion_inicio,"activo_hasta"=>$datos["datos"]->fecha_evaluacion_fin,"actividad_recurso"=>"","fk_id_modulo_curso"=>$datos["datos"]->fk_id_modulo_curso]);
+             //var_dump($ac);   
+             $e=Evaluaciones::firstOrCreate([
+
+                                    "tipo_evaluacion"=>$datos["datos"]->tipo_evaluacion,
+                                    "fk_id_actividad"=>$ac,
+                                    "fecha_evaluacion_inicio"=>$datos["datos"]->fecha_evaluacion_inicio,
+                                    "fecha_evaluacion_fin"=>$datos["datos"]->fecha_evaluacion_fin
+                                                                    
+                                ]);
+            //registrar las preguntas
+            
+            foreach ($datos["datos"]->preguntas as $key => $value) {
+                # code...
+                   
+                    PreguntasEvaluacion::create([
+                        "fk_id_pregunta"=>$value[0]->id,
+                        "fk_id_evaluacion"=>$e->id,
+                    ]);
+            }   
+        } 
         
-        foreach ($datos["datos"]->preguntas as $key => $value) {
-            # code...
-               
-                PreguntasEvaluacion::create([
-                    "fk_id_pregunta"=>$value[0]->id,
-                    "fk_id_evaluacion"=>$e->id,
-                ]);
-        }
        
 
         return response()->json(["mensaje"=>"OK","id"=>$e->id]);

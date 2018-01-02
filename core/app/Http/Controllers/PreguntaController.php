@@ -89,7 +89,7 @@ class PreguntaController extends Controller
             
         }
 
-        return response()->json(["mensaje"=>"OK","id"=>$p->id]);
+        return response()->json(["mensaje"=>"Pregunta creada","id"=>$p->id]);
     }
 
     /**

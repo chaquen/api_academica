@@ -32,6 +32,37 @@ class UsuarioController extends Controller
     }
 
     /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index_alumno()
+    {
+        //
+        $al=DB::table("usuarios")
+                        ->where("fk_id_rol","=","1")
+                        
+                        ->get();
+
+        //consultar cursos
+        
+          $arr=array();
+          $i=0;
+          foreach ($al as $key => $value) {
+                    //var_dump($value);
+                    $arr[$i]=(array)$value;
+                    $arr[$i]["cursos"]=(array)DB::table("cursos")
+                                                ->join("detalle__usuario__cursos","detalle__usuario__cursos.fk_id_curso","=","cursos.id")
+                                                ->where('detalle__usuario__cursos.fk_id_usuario',"=",$value->id)
+                                                ->get();
+                    $i++;
+                }      
+        
+        return response()->json(["datos"=>$arr,"mensaje"=>"Usuario encontrado","respuesta"=>TRUE]);
+    }
+
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -61,7 +92,7 @@ class UsuarioController extends Controller
                                     "direccion_usuario"=>$datos["datos"]->direccion_usuario,
                                     "fk_id_rol"=>$datos["datos"]->rol,
                                     
-                                    "password"=>$datos["datos"]->password,
+                                    "password"=>$datos["datos"]->clave,
                                     
                                     ]);
 
@@ -121,6 +152,7 @@ class UsuarioController extends Controller
                                                 ->join("detalle__usuario__cursos","detalle__usuario__cursos.fk_id_curso","=","cursos.id")
                                                 ->where('detalle__usuario__cursos.fk_id_usuario',"=",$id)
                                                 ->get();
+                                                $i++;
                 }      
         
         return response()->json(["datos"=>$arr,"mensaje"=>"Usuario encontrado","respuesta"=>TRUE]);

@@ -141,7 +141,7 @@ class ActividadController extends Controller
 
             $datos=Util::decodificar_json($request->get("datos"));
             
-            $des="recursos/cursos/".$datos["datos"]->nombre_carpeta;
+            $des="recursos/documento";
             
             if($file->move($des,$datos["datos"]->nombre_archivo)){
                 echo json_encode(["respuesta"=>true,"mensaje"=>"archivo guardado"]);

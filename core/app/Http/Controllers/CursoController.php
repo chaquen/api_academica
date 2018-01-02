@@ -76,16 +76,16 @@ class CursoController extends Controller
                                         ]);
                 //CREAR CARPETA PARA LOS CURSOS
                 //var_dump($cur);
-                $nom__alt=explode(" ",$datos["datos"]->nombre_curso);
+                /*$nom__alt=explode(" ",$datos["datos"]->nombre_curso);
                 $nom_carpeta="";
                 foreach ($nom__alt as $key => $value) {
                      $nom_carpeta.=$value; 
-                }
-                if(!is_dir("recursos/cursos/".$nom_carpeta)){
+                }*/
+                if(!is_dir("recursos/cursos/".$cur->id)){
                   
                   
 
-                    if(mkdir("recursos/cursos/".$nom_carpeta, 0777)){
+                    if(mkdir("recursos/cursos/".$cur->id, 0777)){
                         $i=1;
                         foreach ($datos["datos"]->modulos as $key => $value) {
                             //AQUI REGISTRAR MODULOS
@@ -102,7 +102,7 @@ class CursoController extends Controller
                                     if($v->tipo_recurso!="evaluacion"){
 
                                         if($v->tipo_recurso=="documento"){
-                                             copy("recursos/documento/".$v->recurso,"recursos/cursos/".$nom_carpeta."/".$v->recurso);                            
+                                             copy("recursos/documento/".$v->recurso,"recursos/cursos/".$cur->id."/".$v->recurso);                            
                                         }
 
                                         Actividades::create(["nombre_actividad"=>$v->contenido,
@@ -128,7 +128,43 @@ class CursoController extends Controller
                         return response()->json(["mensaje"=>"fallo al crear curso en carpetas","id"=>$cur->id,"respuesta"=>TRUE]);
                     }    
                 }else{
-                    return response()->json(["mensaje"=>"OK, ya existe carpeta","id"=>$cur->id,"respuesta"=>TRUE]);    
+
+                     $i=1;
+                        foreach ($datos["datos"]->modulos as $key => $value) {
+                            //AQUI REGISTRAR MODULOS
+                            //AQUI REGISTRAR RECURSOS DEL MODULO
+                            //var_dump($value->nombre_modulo);
+                            $mod=Modulo::create(["nombre_modulo"=>$value->nombre_modulo,
+                                                            "descripcion_modulo"=>"",
+                                                            "fk_id_curso"=>$cur->id,
+                                                            "fecha_inicio_modulo"=>$value->fecha_inicio_modulo,
+                                                            "fecha_fin_modulo"=>$value->fecha_fin_modulo,
+                                                            "numero_de_modulo"=>$i++]);
+
+                                foreach ($value->contenidos as $k => $v) {
+                                    if($v->tipo_recurso!="evaluacion"){
+
+                                        if($v->tipo_recurso=="documento"){
+                                             copy("recursos/documento/".$v->recurso,"recursos/cursos/".$cur->id."/".$v->recurso);                            
+                                        }
+
+                                        Actividades::create(["nombre_actividad"=>$v->contenido,
+                                                    "tipo_actividad"=>$v->tipo_recurso,
+                                                    "activo_desde"=>$v->activo_desde,
+                                                    "activo_hasta"=>$v->activo_hasta,
+                                                    "actividad_recurso"=>$v->recurso,
+                                                    "fk_id_modulo_curso"=>$mod->id]);    
+                                    }else{
+                                        Evaluaciones::create(["tipo_evaluacion"=>"examen",
+                                                              "fk_id_actividad"=>$cur->id,
+                                                              "fecha_evaluacion_inicio"=>$v->activo_desde,
+                                                              "fecha_evaluacion_fin"=>$v->activo_hasta]);
+                                    }
+                                    
+                                }
+                        }
+                        
+                    return response()->json(["mensaje"=>"Curso creado exitosamente","id"=>$cur->id,"respuesta"=>TRUE]);    
                 }
             }else{
                 return response()->json(["mensaje"=>"Curso ya existe","id"=>$cur[0]->id,"respuesta"=>TRUE]);
@@ -163,7 +199,7 @@ class CursoController extends Controller
            // var_dump($arr);
             if($i==2){
              
-                $arr[2].=" %";
+                $arr[2].="%";
               //var_dump($arr[$i]);
                  
               $arr_final[$e]=$arr;
@@ -269,9 +305,7 @@ class CursoController extends Controller
         //
         $datos=Util::decodificar_json($request->get("datos"));
         $n_c=Curso::where("id",$id)->get();
-        if(rename("recursos/cursos/".join("",explode(" ", $n_c[0]->nombre_curso)),"recursos/cursos/".join("",explode(" ", $datos["datos"]->nombre_curso)))){
-          //echo "carpeta renombrada";
-        }
+        
         Curso::where("id",$id)
                             ->update([
                                             "nombre_curso"=>$datos["datos"]->nombre_curso,
@@ -353,7 +387,7 @@ class CursoController extends Controller
   
                   }
                   
-                   $child[$i]=["title"=>$v->nombre_actividad,"key"=>$a,"valor"=>$v->id,"tipo"=>$v->tipo_actividad,"recurso"=>$v->actividad_recurso,"nombre_curso"=>$cur[0]->nombre_curso  ];
+                   $child[$i]=["title"=>$v->nombre_actividad,"key"=>$a,"valor"=>$v->id,"tipo"=>$v->tipo_actividad,"recurso"=>$v->actividad_recurso,"nombre_curso"=>$cur[0]->nombre_curso,"id_curso"=>$cur[0]->id  ];
 
                   //array_push($child,["title"=>"nombre_actividad","key"=>"a","valor"=>"","tipo"=>"tipo_actividad","recurso"=>"actividad_recurso"]);
                   $i++;

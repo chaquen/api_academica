@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
+use App\Models\Detalle_Usuario_Curso;
+
+use App\Functions\Util;
+
 class DetalleUsuarioCursoController extends Controller
 {
     /**
@@ -37,6 +41,17 @@ class DetalleUsuarioCursoController extends Controller
     public function store(Request $request)
     {
         //
+        $datos=Util::decodificar_json($request->get("datos"));
+        //var_dump($datos);
+        $Dt=Detalle_Usuario_Curso::where(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$datos["datos"]->id_usuario,"rol"=>$datos["datos"]->rol])->get();
+
+        if(count($Dt)==0){
+            Detalle_Usuario_Curso::create(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$datos["datos"]->id_usuario,"rol"=>$datos["datos"]->rol]);
+            return response()->json(["mensaje"=>"ALUMNO ASOCIADO SATISFACTORIAMENTE","respuesta"=>TRUE]);    
+        }else{
+            return response()->json(["mensaje"=>"ALUMNO YA ESTA ASOCIADO ","respuesta"=>FALSE]);    
+        }
+        
     }
 
     /**
@@ -82,5 +97,7 @@ class DetalleUsuarioCursoController extends Controller
     public function destroy($id)
     {
         //
+        Detalle_Usuario_Curso::where("id","=",$id)->delete();
+        return response()->json(["mensaje"=>"ALUMNO ELIMINADO SATISFACTORIAMENTE","respuesta"=>TRUE]);    
     }
 }
