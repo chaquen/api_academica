@@ -451,12 +451,19 @@ class CursoController extends Controller
                         "updated_at"=>Carbon::now("America/Bogota"),
                         "created_at"=>Carbon::now("America/Bogota")];
         }
-
+        $C=DB::table("cursos")->where("id",$curso)->get();
         DB::table("pines")
             ->insert(
               $arr
             );
-        return response()->json(["mensaje"=>"Pines generados","respuesta"=>true,"datos"=>$arr]);    
+        $arr_2=array();
+        $i=0;    
+        foreach ($arr as $key => $value) {
+              $arr_2[$i]=$value;
+              $arr_2[$i]["nombre_curso"]=$C[0]->nombre_curso;
+              $i++;
+        }    
+        return response()->json(["mensaje"=>"Pines generados","respuesta"=>true,"datos"=>$arr_2]);    
     }
 
     public function consultar_pin($pin){
@@ -500,7 +507,7 @@ class CursoController extends Controller
                if(count($dd)>0){
                   return response()->json(["mensaje"=>"Pin encontrado","respuesta"=>true,"datos"=>$dd]);   
                }else{
-                  return response()->json(["mensaje"=>"Pin NO es valido","respuesta"=>false]);
+                  return response()->json(["mensaje"=>"Pines NO encontrados","respuesta"=>false]);
                } 
               
             
@@ -545,7 +552,6 @@ class CursoController extends Controller
                 $dd=DB::table("pines")
                   ->join("cursos","cursos.id","=","pines.fk_id_curso")
                   ->select("cursos.nombre_curso",
-                            "pines.fk_id_curso",
                             "pines.id",
                             "pines.pin",
                             "pines.estado")
@@ -556,7 +562,6 @@ class CursoController extends Controller
                  ->join("cursos","cursos.id","=","pines.fk_id_curso")
                   ->where("fk_id_curso","=",$curso)
                   ->select("cursos.nombre_curso",
-                            "pines.fk_id_curso",
                             "pines.id",
                             "pines.pin",
                             "pines.estado")
@@ -609,7 +614,7 @@ class CursoController extends Controller
                     })->store('xls', trim(substr(base_path(),0,-4)."recursos\ ")."exportacion");
 
     if(count($dd)>0){
-         return response()->json(["mensaje"=>"Pin encontrado :)","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso,"datos"=>$dd,"archivo"=>"pines.xls"]);   
+         return response()->json(["mensaje"=>"Pin encontrado ","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso,"datos"=>$dd,"archivo"=>"pines.xls"]);   
     }else{
          return response()->json(["mensaje"=>"Pin NO  es valido","respuesta"=>false]);
     } 

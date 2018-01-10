@@ -102,6 +102,7 @@ Route::get("consulta_inicial_alumno/{usuario}",function($usuario){
 Route::resource("usuarios","UsuarioController");
 Route::resource("usuarios_index","UsuarioController@index_alumno");
 Route::resource("agenda","ActividadController");
+Route::get("agenda_por_id/{id}","ActividadController@agenda_por_id");
 Route::resource("preguntas","PreguntaController");
 Route::get("preguntas_tipo/{tipo}","PreguntaController@preguntas_tipo");
 Route::resource("respuestas","RespuestaController");

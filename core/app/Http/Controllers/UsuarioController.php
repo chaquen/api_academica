@@ -81,9 +81,11 @@ class UsuarioController extends Controller
     public function store(Request $request)
     {
         //
-        $datos=Util::decodificar_json($request->get("datos"));
         
-        $al=Usuario::firstOrCreate(["nombre_usuario"=>$datos["datos"]->nombre_usuario,
+        $datos=Util::decodificar_json($request->get("datos"));
+        $uss=Usuario::where("correo_usuario","=",$datos["datos"]->correo_usuario)->orwhere("documento_usuario","=",$datos["datos"]->documento_usuario)->get();
+        if(count($uss)==0){
+            $al=Usuario::firstOrCreate(["nombre_usuario"=>$datos["datos"]->nombre_usuario,
                                     "apellido_usuario"=>$datos["datos"]->apellido_usuario,
                                     "fecha_nacimiento"=>$datos["datos"]->fecha_nacimiento,
                                     "correo_usuario"=>$datos["datos"]->correo_usuario,
@@ -92,39 +94,50 @@ class UsuarioController extends Controller
                                     "direccion_usuario"=>$datos["datos"]->direccion_usuario,
                                     "fk_id_rol"=>$datos["datos"]->rol,
                                     
-                                    "password"=>$datos["datos"]->clave,
+                                    "password"=>$datos["datos"]->password,
                                     
                                     ]);
 
-        if($datos["datos"]->curso!="0"){
-           Detalle_Usuario_Curso::create(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$al->id,"nota_esperada"=>"100","nota_final"=>"0"]);
+          if($datos["datos"]->curso!="0"){
+            //Aqui inscribo al estudiante al curso
+             Detalle_Usuario_Curso::create(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$al->id,"nota_esperada"=>"100","nota_final"=>"0"]);
 
-           $datos["datos"]->pin;
-           DB::table("pines")
-            ->where([["fk_id_curso","=",$datos["datos"]->curso],["pin","=",$datos["datos"]->pin]])
-            ->update(["estado"=>"redimido"]);
+             //aqui redimo el pin
+             DB::table("pines")
+              ->where([["fk_id_curso","=",$datos["datos"]->curso],["pin","=",$datos["datos"]->pin]])
+              ->update(["estado"=>"redimido"]);
+              //Aquí envo email de bienvenida
+              Util::enviar_email("email.bienvenido_pin",["nombre"=>$datos["datos"]->nombre_usuario." ".$datos["datos"]->apellido_usuario,"pin"=>$datos["datos"]->pin],"academia@oelsas.com","Academia OEL","Gracias por redimir tu pin",$datos["datos"]->correo_usuario,$datos["datos"]->nombre_usuario);
+             
+          }else{
+            //Aquí envio email d bienvenida
+              Util::enviar_email("email.bienvenido",["nombre"=>$datos["datos"]->nombre_usuario." ".$datos["datos"]->apellido_usuario],"academia@oelsas.com","Academia OEL","Bienvenido a esta gran familia",$datos["datos"]->correo_usuario,$datos["datos"]->nombre_usuario);
+
+          }
+
+          $u=DB::table("usuarios")
+                  ->where("usuarios.id","=",$al->id)
+                  ->join("roles","roles.id","=","usuarios.fk_id_rol")
+                   ->select("usuarios.nombre_usuario",
+                                      "usuarios.apellido_usuario",
+                                      "usuarios.correo_usuario",
+                                      "usuarios.direccion_usuario",
+                                      "usuarios.documento_usuario",
+                                      "usuarios.telefono_usuario",
+                                      "usuarios.fecha_nacimiento",
+                                      "usuarios.fk_id_rol",
+                                      "roles.nombre_rol",
+                                      "usuarios.id")
+                                  ->get();
+                  
            
+
+
+          return response()->json(["mensaje"=>"Bienvenido ".$datos["datos"]->nombre_usuario,"id"=>$al->id,"respuesta"=>TRUE,"datos"=>$u[0]]);  
+        }else{
+          return response()->json(["mensaje"=>"Por favor verifique su correo electronico y documento parece que los datos que esta suministrando ya se encuentran registrados ","respuesta"=>FALSE]);  
         }
-
-        $u=DB::table("usuarios")
-                ->where("usuarios.id","=",$al->id)
-                ->join("roles","roles.id","=","usuarios.fk_id_rol")
-                 ->select("usuarios.nombre_usuario",
-                                    "usuarios.apellido_usuario",
-                                    "usuarios.correo_usuario",
-                                    "usuarios.direccion_usuario",
-                                    "usuarios.documento_usuario",
-                                    "usuarios.telefono_usuario",
-                                    "usuarios.fecha_nacimiento",
-                                    "usuarios.fk_id_rol",
-                                    "roles.nombre_rol",
-                                    "usuarios.id")
-                                ->get();
-                
-         
-
-
-        return response()->json(["mensaje"=>"OK","id"=>$al->id,"respuesta"=>TRUE,"datos"=>$u[0]]);
+        
     }
 
     /**
@@ -299,7 +312,8 @@ class UsuarioController extends Controller
                                     "usuarios.fecha_nacimiento",
                                     "usuarios.fk_id_rol",
                                     "roles.nombre_rol",
-                                    "usuarios.id")
+                                    "usuarios.id",
+                                    "usuarios.password")
                                 ->get();
             
             if(count($al)==0){ 
