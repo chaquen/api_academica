@@ -94,7 +94,7 @@ class UsuarioController extends Controller
                                     "direccion_usuario"=>$datos["datos"]->direccion_usuario,
                                     "fk_id_rol"=>$datos["datos"]->rol,
                                     
-                                    "password"=>$datos["datos"]->password,
+                                    "password"=>$datos["datos"]->clave,
                                     
                                     ]);
 
@@ -200,6 +200,7 @@ class UsuarioController extends Controller
         Usuario::where("id",$id)
                             ->update(["nombre_usuario"=>$datos["datos"]->nombre_usuario,
                                       "apellido_usuario"=>$datos["datos"]->apellido_usuario,
+                                       "fecha_nacimiento"=>$datos["datos"]->fecha_cumple,
                                       "correo_usuario"=>$datos["datos"]->correo_usuario,
                                       "telefono_usuario"=>$datos["datos"]->telefono_usuario,
                                       "direccion_usuario"=>$datos["datos"]->direccion_usuario,

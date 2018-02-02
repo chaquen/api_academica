@@ -54,8 +54,9 @@ class EvaluacionController extends Controller
          //var_dump($datos["datos"]);
          //var_dump($datos["datos"]->fk_id_actividad);
          $ac=DB::table("actividades")->where("id","=",$datos["datos"]->fk_id_actividad)->get();
+        
         if(count($ac)>0){
-            $e=Evaluaciones::firstOrCreate([
+            $e=Evaluaciones::create([
 
                                     "tipo_evaluacion"=>$datos["datos"]->tipo_evaluacion,
                                     "fk_id_actividad"=>$datos["datos"]->fk_id_actividad,
@@ -64,7 +65,7 @@ class EvaluacionController extends Controller
                                                                     
                                 ]);
             //registrar las preguntas
-            
+            var_dump($e);
             foreach ($datos["datos"]->preguntas as $key => $value) {
                 # code...
                    

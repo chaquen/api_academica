@@ -592,7 +592,7 @@ class CursoController extends Controller
                
             
       }
-      //var_dump($dd);
+      var_dump($dd);
         $arr=[];
         foreach ($dd as $key => $value) {
           $arr[$key]=(array)$value;

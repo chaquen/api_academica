@@ -67,7 +67,8 @@ class ActividadController extends Controller
         //
         
        
-       
+      
+
       
         $act=Actividades::join("modulos","modulos.id","=","actividades.fk_id_modulo_curso")
                             ->where([["modulos.fk_id_curso","=",$id],["tipo_actividad","=","evento"]])
@@ -173,6 +174,19 @@ class ActividadController extends Controller
     public function agenda_por_id($id_agenda){
          $act=Actividades::join("modulos","modulos.id","=","actividades.fk_id_modulo_curso")
                             ->where("actividades.id","=",$id_agenda)                            
+                            ->get();
+        if(count($act)>0){
+            return response()->json(["mensaje"=>"Eventos encontrados","respuesta"=>true,"datos"=>$act]);    
+        }else{
+            return response()->json(["mensaje"=>"Eventos NO encontrados","respuesta"=>false]);
+        }
+    }
+
+    public function evaluaciones($uno,$dos,$tres,$cuatro){
+         $act=Actividades::join("modulos","modulos.id","=","actividades.fk_id_modulo_curso")
+                            ->where([[$uno,"=",$dos],[$tres,"=",$cuatro]])
+                          
+                            ->select("actividades.id","actividades.nombre_actividad","actividades.activo_desde","actividades.activo_hasta","actividades.fk_id_modulo_curso","modulos.nombre_modulo","actividades.tipo_actividad")
                             ->get();
         if(count($act)>0){
             return response()->json(["mensaje"=>"Eventos encontrados","respuesta"=>true,"datos"=>$act]);    

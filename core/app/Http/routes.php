@@ -14,9 +14,7 @@ header('Access-Control-Allow-Origin: *');
 header( 'Access-Control-Allow-Headers: Authorization, Content-Type' );
 header( 'Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS' );
 
-Route::get('/', function () {
-    return view('welcome');
-});
+
 
 /*AQUI VAN LAS RUTAS DE LA APLICACION*/
 Route::get("consulta_inicial/{id}",function($id){
@@ -124,6 +122,7 @@ Route::get("validar_cambio_pass/{id_usuario}/{pin_clave}","UsuarioController@val
 Route::resource("categorias","CategoriasCursosController");
 Route::resource("cursos","CursoController");
 Route::resource("actividades","ActividadController");
+Route::get("evaluaciones/{val1}/{val2}/{val3}/{val4}","ActividadController@evaluaciones");
 Route::get("modulos_del_cursos/{id_curso}","CursoController@mostrar_arbol_modulos");
 Route::post("subir_archivos","ActividadController@subir_archivo");
 Route::get("eventos/{id_curso}","ActividadController@eventos");
