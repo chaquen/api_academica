@@ -85,6 +85,7 @@ class UsuarioController extends Controller
         $datos=Util::decodificar_json($request->get("datos"));
         $uss=Usuario::where("correo_usuario","=",$datos["datos"]->correo_usuario)->orwhere("documento_usuario","=",$datos["datos"]->documento_usuario)->get();
         if(count($uss)==0){
+          //var_dump($datos);
             $al=Usuario::firstOrCreate(["nombre_usuario"=>$datos["datos"]->nombre_usuario,
                                     "apellido_usuario"=>$datos["datos"]->apellido_usuario,
                                     "fecha_nacimiento"=>$datos["datos"]->fecha_nacimiento,
@@ -92,8 +93,7 @@ class UsuarioController extends Controller
                                     "documento_usuario"=>$datos["datos"]->documento_usuario,
                                     "telefono_usuario"=>$datos["datos"]->telefono_usuario,
                                     "direccion_usuario"=>$datos["datos"]->direccion_usuario,
-                                    "fk_id_rol"=>$datos["datos"]->rol,
-                                    
+                                    "fk_id_rol"=>$datos["datos"]->rol,                                    
                                     "password"=>$datos["datos"]->clave,
                                     
                                     ]);
@@ -102,12 +102,16 @@ class UsuarioController extends Controller
             //Aqui inscribo al estudiante al curso
              Detalle_Usuario_Curso::create(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$al->id,"nota_esperada"=>"100","nota_final"=>"0"]);
 
-             //aqui redimo el pin
-             DB::table("pines")
-              ->where([["fk_id_curso","=",$datos["datos"]->curso],["pin","=",$datos["datos"]->pin]])
-              ->update(["estado"=>"redimido"]);
-              //Aquí envo email de bienvenida
-              Util::enviar_email("email.bienvenido_pin",["nombre"=>$datos["datos"]->nombre_usuario." ".$datos["datos"]->apellido_usuario,"pin"=>$datos["datos"]->pin],"academia@oelsas.com","Academia OEL","Gracias por redimir tu pin",$datos["datos"]->correo_usuario,$datos["datos"]->nombre_usuario);
+             //aqui redimo el pines
+             
+             if(property_exists($datos["datos"],"pin")){
+                  DB::table("pines")
+                ->where([["fk_id_curso","=",$datos["datos"]->curso],["pin","=",$datos["datos"]->pin]])
+                ->update(["estado"=>"redimido"]);
+                //Aquí envo email de bienvenida
+                Util::enviar_email("email.bienvenido_pin",["nombre"=>$datos["datos"]->nombre_usuario." ".$datos["datos"]->apellido_usuario,"pin"=>$datos["datos"]->pin],"academia@oelsas.com","Academia OEL","Gracias por redimir tu pin",$datos["datos"]->correo_usuario,$datos["datos"]->nombre_usuario); 
+             }
+             
              
           }else{
             //Aquí envio email d bienvenida

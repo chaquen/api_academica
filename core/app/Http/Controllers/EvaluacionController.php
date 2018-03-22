@@ -101,7 +101,7 @@ class EvaluacionController extends Controller
         
        
 
-        return response()->json(["mensaje"=>"OK","id"=>$e->id]);
+        return response()->json(["mensaje"=>"Evaluación ".$datos["datos"]->nombre_evaluacion.", creada correctamente","id"=>$e->id]);
     }
 
     /**

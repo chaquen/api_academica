@@ -107,7 +107,7 @@ class ActividadController extends Controller
         $datos=Util::decodificar_json($request->get("datos"));
         
         Actividades::where("id","=",$id)
-                       ->update(["nombre_actividad"=>$datos["datos"]->nombre_actividad,"tipo_actividad"=>$datos["datos"]->tipo_evento,"activo_desde"=>$datos["datos"]->fecha_inicio_evento." ".$datos["datos"]->hora_inicio_evento,"activo_hasta"=>$datos["datos"]->hora_fin_evento." ".$datos["datos"]->hora_fin_evento,"fk_id_modulo_curso"=>$datos["datos"]->id_modulo]); 
+                       ->update(["nombre_actividad"=>$datos["datos"]->nombre_actividad,"tipo_actividad"=>$datos["datos"]->tipo_evento,"activo_desde"=>$datos["datos"]->fecha_inicio_evento." ".$datos["datos"]->hora_inicio_evento.":00","activo_hasta"=>$datos["datos"]->fecha_fin_evento." ".$datos["datos"]->hora_fin_evento.":00","fk_id_modulo_curso"=>$datos["datos"]->id_modulo]); 
 
         return response()->json(["mensaje"=>"Agenda actualizada","respuesta"=>true]);    
     }
@@ -173,7 +173,17 @@ class ActividadController extends Controller
 
     public function agenda_por_id($id_agenda){
          $act=Actividades::join("modulos","modulos.id","=","actividades.fk_id_modulo_curso")
-                            ->where("actividades.id","=",$id_agenda)                            
+                            ->where("actividades.id","=",$id_agenda) ->select("actividades.id","actividades.nombre_actividad","actividades.tipo_actividad",
+                                "actividades.estado_actividad",
+                                "actividades.actividad_recurso",
+                                "actividades.activo_desde", 
+                                "actividades.activo_hasta", 
+                                "actividades.fk_id_modulo_curso",       
+                                "modulos.numero_de_modulo",
+                                "modulos.nombre_modulo",
+                                "modulos.fk_id_curso",
+                                "modulos.fecha_fin_modulo",
+                                "modulos.fecha_inicio_modulo")                           
                             ->get();
         if(count($act)>0){
             return response()->json(["mensaje"=>"Eventos encontrados","respuesta"=>true,"datos"=>$act]);    

@@ -134,3 +134,6 @@ Route::get("consultar_pin_admin/{curso}/{pin}","CursoController@consultar_pin_ad
 Route::get("exportar_pines/{curso}/{pin}","CursoController@exportar_pines");
 Route::delete("eliminar_pin/{id}","CursoController@eliminar_pin");
 Route::resource("detalle_usuario_curso","DetalleUsuarioCursoController");
+Route::get("contenido",function () {
+    return view('contenido_curso');
+});
