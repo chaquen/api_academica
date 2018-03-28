@@ -103,6 +103,20 @@ class UsuarioController extends Controller
              Detalle_Usuario_Curso::create(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$al->id,"nota_esperada"=>"100","nota_final"=>"0"]);
 
              //aqui redimo el pines
+
+
+              $cc=DB::table("cursos")
+                ->join("modulos","modulos.fk_id_curso","=","cursos.id")
+                ->join("actividades","actividades.fk_id_modulo_curso","=","modulos.id")
+                ->where("cursos.id",$datos["datos"]->curso)
+                ->select("actividades.id")
+                ->get();
+            
+
+            foreach ($cc as $key => $value) {
+                DB::table("detalle_evaluacion_usuario")
+                    ->insert(["fk_id_usuario"=>$al->id,"fk_id_evaluacion"=>$value->id]);    
+            }        
              
              if(property_exists($datos["datos"],"pin")){
                   DB::table("pines")
@@ -204,7 +218,7 @@ class UsuarioController extends Controller
         Usuario::where("id",$id)
                             ->update(["nombre_usuario"=>$datos["datos"]->nombre_usuario,
                                       "apellido_usuario"=>$datos["datos"]->apellido_usuario,
-                                       "fecha_nacimiento"=>$datos["datos"]->fecha_cumple,
+                                      "fecha_nacimiento"=>$datos["datos"]->fecha_cumple,
                                       "correo_usuario"=>$datos["datos"]->correo_usuario,
                                       "telefono_usuario"=>$datos["datos"]->telefono_usuario,
                                       "direccion_usuario"=>$datos["datos"]->direccion_usuario,
@@ -337,7 +351,7 @@ class UsuarioController extends Controller
                 ->where("detalle__usuario__cursos.fk_id_curso","=",$id_curso)
                 ->get();
                 
-        return response()->json(["mensaje"=>"Alumnos encontrados","respuesta"=>TRUE,"datos"=>$us]);    
+        return response()->json(["mensaje"=>"Alumnos encontrados","respuesta"=>TRUE,"datos"=>$us,"curso"=>DB::table("cursos")->where("id",$id_curso)->get()]);    
     } 
 
     public function recuperar_pass(Request $request){
@@ -405,6 +419,15 @@ class UsuarioController extends Controller
 
     }
 
+    public function validar_usuario($cedula){
+      $profe=Usuario::where("documento_usuario",$cedula)->get();
+      if(count($profe)>0){
+        return response()->json(["mensaje"=>"Este documento ya esta registrado","respuesta"=>TRUE,"datos"=>$profe[0]]);                      
+      }else{
+        return response()->json(["mensaje"=>"Este documento NO esta registrado","respuesta"=>FALSE]);                    
+      }
+      
+    }
     
 
 }

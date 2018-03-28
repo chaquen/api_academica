@@ -137,3 +137,8 @@ Route::resource("detalle_usuario_curso","DetalleUsuarioCursoController");
 Route::get("contenido",function () {
     return view('contenido_curso');
 });
+Route::post("intento_evaluacion","EvaluacionController@intento_evaluacion");
+Route::get("buscar_actividades_por_curso/{id_curso}","ActividadController@buscar_actividades_por_curso");
+Route::post("registrar_nota","ActividadController@registrar_nota");
+Route::get("ver_notas_actividades/{id_usuario}","ActividadController@ver_notas_actividades");
+Route::get("validar_usuario/{cc}","UsuarioController@validar_usuario");

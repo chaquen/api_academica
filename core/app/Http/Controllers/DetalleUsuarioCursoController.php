@@ -10,6 +10,8 @@ use App\Models\Detalle_Usuario_Curso;
 
 use App\Functions\Util;
 
+use DB;
+
 class DetalleUsuarioCursoController extends Controller
 {
     /**
@@ -47,6 +49,21 @@ class DetalleUsuarioCursoController extends Controller
 
         if(count($Dt)==0){
             Detalle_Usuario_Curso::create(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$datos["datos"]->id_usuario,"rol"=>$datos["datos"]->rol]);
+            $cc=DB::table("cursos")
+                ->join("modulos","modulos.fk_id_curso","=","cursos.id")
+                ->join("actividades","actividades.fk_id_modulo_curso","=","modulos.id")
+                ->where("cursos.id",$datos["datos"]->curso)
+                ->select("actividades.id")
+                ->get();
+            
+
+            foreach ($cc as $key => $value) {
+                DB::table("detalle_evaluacion_usuario")
+                    ->insert(["fk_id_usuario"=>$datos["datos"]->id_usuario,"fk_id_evaluacion"=>$value->id]);    
+            }        
+
+
+
             return response()->json(["mensaje"=>"ALUMNO ASOCIADO SATISFACTORIAMENTE","respuesta"=>TRUE]);    
         }else{
             return response()->json(["mensaje"=>"ALUMNO YA ESTA ASOCIADO ","respuesta"=>FALSE]);    

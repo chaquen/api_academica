@@ -204,4 +204,40 @@ class ActividadController extends Controller
             return response()->json(["mensaje"=>"Eventos NO encontrados","respuesta"=>false]);
         }
     }
+
+
+    public function buscar_actividades_por_curso($id_curso){
+        $act=DB::table("cursos")
+            ->join("modulos","modulos.fk_id_curso","=","cursos.id")
+            ->join("actividades","actividades.fk_id_modulo_curso","=","modulos.id")
+            ->where("cursos.id",$id_curso)
+            ->select("actividades.id","actividades.nombre_actividad","actividades.activo_desde","actividades.activo_hasta","actividades.fk_id_modulo_curso","modulos.nombre_modulo","actividades.tipo_actividad")
+            ->get();
+        if(count($act)>0){
+            return response()->json(["mensaje"=>"Actividades encontrados","respuesta"=>true,"datos"=>$act]);    
+        }else{
+            return response()->json(["mensaje"=>"Actividades NO encontrados","respuesta"=>false]);
+        }    
+    }
+
+    public function registrar_nota(Request $request){
+        $datos=Util::decodificar_json($request->get("datos"));
+        DB::table("detalle_evaluacion_usuario")
+                ->insert(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->actividad,"num_intentos"=>"1","nota_evaluacion"=>$datos["datos"]->nota]);
+        return response()->json(["mensaje"=>"Actividad calificada","respuesta"=>true]);                
+    }
+
+    public function ver_notas_actividades($id_usuario){
+         $nota=DB::table("detalle_evaluacion_usuario")
+            ->join("usuarios","usuarios.id","=","detalle_evaluacion_usuario.fk_id_usuario")
+            ->join("actividades","actividades.id","=","detalle_evaluacion_usuario.fk_id_evaluacion")
+            ->select("actividades.id","actividades.nombre_actividad","detalle_evaluacion_usuario.nota_evaluacion")
+            ->where("usuarios.id",$id_usuario)
+            ->get();
+        if(count($nota)>0){
+            return response()->json(["mensaje"=>"Notas encontradas","respuesta"=>true,"datos"=>$nota]);    
+        }else{
+            return response()->json(["mensaje"=>"Notas NO encontradas","respuesta"=>false]);
+        }    
+    }
 }

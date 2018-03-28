@@ -65,7 +65,7 @@ class EvaluacionController extends Controller
                                                                     
                                 ]);
             //registrar las preguntas
-            var_dump($e);
+            //var_dump($e);
             foreach ($datos["datos"]->preguntas as $key => $value) {
                 # code...
                    
@@ -289,5 +289,20 @@ class EvaluacionController extends Controller
          }
           
  
+    }
+
+    public function intento_evaluacion(Request $request){
+        $datos=Util::decodificar_json($request->get("datos"));
+        $dd=DB::table("detalle_evaluacion_usuario")->where(["fk_id_usuario"=>$datos["datos"]->id_usuario,"fk_id_evaluacion"=>$datos["datos"]->id_evaluacion])->get();
+        //var_dump(count($dd));
+        if(count($dd)>=1){
+            $ie=DB::table("detalle_evaluacion_usuario")->where(["fk_id_usuario"=>$datos["datos"]->id_usuario,"fk_id_evaluacion"=>$datos["datos"]->id_evaluacion])->get();
+            DB::table("detalle_evaluacion_usuario")->where("id",$ie[0]->id)->increment("num_intentos");
+        }else{
+            $ie=DB::table("detalle_evaluacion_usuario")->insertGetId(["fk_id_usuario"=>$datos["datos"]->id_usuario,"fk_id_evaluacion"=>$datos["datos"]->id_evaluacion]);
+            DB::table("detalle_evaluacion_usuario")->where("id",$ie[0]->id)->increment("num_intentos");
+        }
+        
+        return response()->json(["mensaje"=>"Haz empezado la evaluación","respuesta"=>true]);    
     }
 }
