@@ -117,31 +117,36 @@ class EvaluacionController extends Controller
         //var_dump($e);
           $arr=[];   
           $i=0;       
-         foreach ($e as $key => $value) {
-                //var_dump($value);
-                $arr[$i]=$value;
-                $arr[$i]["preguntas"]=PreguntasEvaluacion::join("preguntas","preguntas.id","=","preguntas_evaluacions.fk_id_pregunta")
-                                        ->where("fk_id_evaluacion","=",$value->id)
-                                        ->select("preguntas_evaluacions.id as id_pregunta","preguntas.id","preguntas.argumento_pregunta","tipo_pregunta","preguntas_evaluacions.fk_id_pregunta")
-                                        ->get();
-                 //var_dump(count($arr[$i]["preguntas"]));
-                 //echo "====";                       
-                $i++;
-         }
+         if(count($e)>0){
+                foreach ($e as $key => $value) {
+                        //var_dump($value);
+                        $arr[$i]=$value;
+                        $arr[$i]["preguntas"]=PreguntasEvaluacion::join("preguntas","preguntas.id","=","preguntas_evaluacions.fk_id_pregunta")
+                                                ->where("fk_id_evaluacion","=",$value->id)
+                                                ->select("preguntas_evaluacions.id as id_pregunta","preguntas.id","preguntas.argumento_pregunta","tipo_pregunta","preguntas_evaluacions.fk_id_pregunta")
+                                                ->get();
+                         //var_dump(count($arr[$i]["preguntas"]));
+                         //echo "====";                       
+                        $i++;
+                 }
 
-        //var_dump($arr);
-         foreach ($arr[0]["preguntas"] as $key => $value) {
-            //var_dump($value->fk_id_pregunta);
-            //echo "=========";
-             $arr[0]["preguntas"][$key]["respuestas"]=Respuestas::where("fk_id_pregunta","=",$value->fk_id_pregunta)
-                                                                    ->select("respuestas.id","respuestas.argumento_respuesta","es_correcta") 
-                                                                    ->get();
-         }           
-        if(count($arr)>0){
-            return response()->json(["datos"=>$arr,"mensaje"=>"Evaluacion encontrada","respuesta"=>true]);    
-        }else{
-            return response()->json(["datos"=>$arr,"mensaje"=>"Evaluacion NO  encontrada","respuesta"=>false]);    
-        }
+                 //var_dump($arr);
+                 foreach ($arr[0]["preguntas"] as $key => $value) {
+                    //var_dump($value->fk_id_pregunta);
+                    //echo "=========";
+                     $arr[0]["preguntas"][$key]["respuestas"]=Respuestas::where("fk_id_pregunta","=",$value->fk_id_pregunta)
+                                                                            ->select("respuestas.id","respuestas.argumento_respuesta","es_correcta") 
+                                                                            ->get();
+                 }           
+                if(count($arr)>0){
+                    return response()->json(["datos"=>$arr,"mensaje"=>"Evaluacion encontrada","respuesta"=>true]);    
+                }else{
+                    return response()->json(["datos"=>$arr,"mensaje"=>"Evaluacion NO  encontrada","respuesta"=>false]);    
+                }
+         }else{
+                    return response()->json(["datos"=>$arr,"mensaje"=>"Esta actividad no cuenta con preguntas asociadas","respuesta"=>false]);    
+         } 
+         
 
         
     }

@@ -133,15 +133,17 @@ class ActividadController extends Controller
 
             $file=$request->file('miArchivo');
             
-            $datos=Util::decodificar_json($request->get("datos"));
-            
-            $filename=$datos["datos"]->nombre_archivo;
+            //$datos=Util::decodificar_json($request->get("datos"));
+            //var_dump($request->get("datos"));
+            $datos=json_decode($request->get("datos"));
+            //var_dump($datos->datos);
+            $filename=$datos->datos->nombre_archivo;
 
             $datos=Util::decodificar_json($request->get("datos"));
             
             $des="recursos/documento";
             
-            if($file->move($des,$datos["datos"]->nombre_archivo)){
+            if($file->move($des,$filename)){
                 echo json_encode(["respuesta"=>true,"mensaje"=>"archivo guardado"]);
             }else{
                 echo json_encode(["respuesta"=>false,"mensaje"=>"NO se ha podido guardar"]);

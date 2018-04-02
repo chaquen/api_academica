@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Util;
+use App\Functions\Util;
 use Jenssegers\Date\Date;
-use App\Uusario;
+use App\Models\Usuario;
 use DateTimeZone; 
 use DB;
 
@@ -49,16 +49,16 @@ class VuelveAClaseCommand extends Command
         $hace_dos_dias=Date::now(new DateTimeZone("America/Bogota"))->sub('2 day');
         //var_dump($hace_dos_dias->day);
 
-        $us=DB::table("users")
-            ->where("updated_at","<",$hace_dos_dias)
+        $us=DB::table("usuarios")
+            ->where([["updated_at","<",$hace_dos_dias],["fk_id_rol","=","1"]])
             ->get();
 
          //var_dump($us);   
          foreach ($us as $key => $value) {
-            $al=Usuario::where("correo_usuario","=",$value->email)->get();
+            //$al=Usuario::where("correo_usuario","=",$value->correo_usuario)->get();
            
             //var_dump($value->email);
-            Util::enviar_email("email.vuelve_a_clase",["nombre"=>$al[0]->nombre_alumno],"academia@oelsas.com","El equipo OEL","Te estamos esperando, vuelve pronto",$value->email,$al[0]->nombre_alumno);    
+            Util::enviar_email("email.vuelve_a_clase",["nombre"=>$value->nombre_usuario],"academia@oelsas.com","El equipo OEL","Te estamos esperando, vuelve pronto",$value->correo_usuario,$value->nombre_usuario." ".$value->apellido_usuario);    
          }
          
     }

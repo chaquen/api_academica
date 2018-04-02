@@ -102,28 +102,14 @@ class UsuarioController extends Controller
             //Aqui inscribo al estudiante al curso
              Detalle_Usuario_Curso::create(["fk_id_curso"=>$datos["datos"]->curso,"fk_id_usuario"=>$al->id,"nota_esperada"=>"100","nota_final"=>"0"]);
 
-             //aqui redimo el pines
-
-
-              $cc=DB::table("cursos")
-                ->join("modulos","modulos.fk_id_curso","=","cursos.id")
-                ->join("actividades","actividades.fk_id_modulo_curso","=","modulos.id")
-                ->where("cursos.id",$datos["datos"]->curso)
-                ->select("actividades.id")
-                ->get();
             
-
-            foreach ($cc as $key => $value) {
-                DB::table("detalle_evaluacion_usuario")
-                    ->insert(["fk_id_usuario"=>$al->id,"fk_id_evaluacion"=>$value->id]);    
-            }        
              
              if(property_exists($datos["datos"],"pin")){
                   DB::table("pines")
-                ->where([["fk_id_curso","=",$datos["datos"]->curso],["pin","=",$datos["datos"]->pin]])
-                ->update(["estado"=>"redimido"]);
+                    ->where([["fk_id_curso","=",$datos["datos"]->curso],["pin","=",$datos["datos"]->pin]])
+                    ->update(["estado"=>"redimido"]);
                 //Aquí envo email de bienvenida
-                Util::enviar_email("email.bienvenido_pin",["nombre"=>$datos["datos"]->nombre_usuario." ".$datos["datos"]->apellido_usuario,"pin"=>$datos["datos"]->pin],"academia@oelsas.com","Academia OEL","Gracias por redimir tu pin",$datos["datos"]->correo_usuario,$datos["datos"]->nombre_usuario); 
+                Util::enviar_email("email.bienvenido_pin",["nombre"=>$datos["datos"]->nombre_usuario." ".$datos["datos"]->apellido_usuario,"pin"=>$datos["datos"]->pin,"id_curso"=>$datos["datos"]->curso,"id_usuario"=>$al->id],"academia@oelsas.com","Academia OEL","Gracias por redimir tu pin",$datos["datos"]->correo_usuario,$datos["datos"]->nombre_usuario); 
              }
              
              
@@ -151,7 +137,7 @@ class UsuarioController extends Controller
            
 
 
-          return response()->json(["mensaje"=>"Bienvenido ".$datos["datos"]->nombre_usuario,"id"=>$al->id,"respuesta"=>TRUE,"datos"=>$u[0]]);  
+          return response()->json(["mensaje"=>"Bienvenido ".$datos["datos"]->nombre_usuario.", te hemos enviado un correo electrónico para que confimes tu identidad, estas a un paso de comenzar a cambiar tu mundo. ANIMO AÚN ESTAS A TIEMPO","id"=>$al->id,"respuesta"=>TRUE,"datos"=>$u[0]]);  
         }else{
           return response()->json(["mensaje"=>"Por favor verifique su correo electronico y documento parece que los datos que esta suministrando ya se encuentran registrados ","respuesta"=>FALSE]);  
         }
@@ -313,6 +299,26 @@ class UsuarioController extends Controller
     public function login(Request $request){
             //echo "ip del cliente ";
             //var_dump($request->ip());
+            //var_dump(Util::get_client_ip());
+            //var_dump(Util::ip_info());
+            //var_dump();
+            //Util::write_visita();
+            $mi_ip=Util::get_client_ip();
+            $datos=Util::decodificar_json($request->get("datos"));
+            $va=Util::validar_token_login($datos["datos"]->usuario,$datos["datos"]->clave);
+            if($va["respuesta"]){
+              $TK=Random::AlphaNumeric(12);  
+              return response()->json(["mensaje"=>"Ya haz iniciado sesión en otro dispositivo o navegador, en ese caso tu otra sesión va a caducar, ¿Deseas continuar?","expulsar"=>TRUE,"token"=>$TK,"datos"=>$va["datos"]]);  
+            }
+
+            //1- OBTENER IP
+            //2- ENVIAR CODIGO (TOKEN) AL CLIENTE 
+            //3- SI EL CLIENTE VUELVE A INGRESAR VERIFICAR IP 
+              //3.1 SI ES LA MISMA IP Y NO HA INICIADO SESION REEMPLAZAR CODIGO PARA AUTORIZAR NUEVO SITIO
+              //3.2 SI ES OTRA IP REEMPLZAR CODIGO E IP
+
+
+
 
             $datos=Util::decodificar_json($request->get("datos"));
             //var_dump($datos["datos"]);
@@ -338,11 +344,72 @@ class UsuarioController extends Controller
             if(count($al)==0){ 
                 return response()->json(["mensaje"=>"No estas registrado","respuesta"=>FALSE]);    
             }else{
+                $TK=Random::AlphaNumeric(12);  
+                Usuario::where("id","=",$al[0]->id)->update(["updated_at"=>$datos["hora_cliente"],"ip_host"=>$mi_ip,"remember_token"=>$TK]);
                 
-                Usuario::where("id","=",$al[0]->id)->update(["updated_at"=>$datos["hora_cliente"]]);
 
-                return response()->json(["mensaje"=>"Bienvenido,".$al[0]->nombre_usuario.", ","respuesta"=>TRUE,"datos"=>$al[0]]);    
+                return response()->json(["mensaje"=>"Bienvenido,".$al[0]->nombre_usuario.", ","respuesta"=>TRUE,"datos"=>$al[0],"token"=>$TK]);    
             }   
+    }
+
+    public function sobre_escribir_tk(Request $request){
+
+            $mi_ip=Util::get_client_ip();
+            $datos=Util::decodificar_json($request->get("datos"));
+            
+            $al=DB::table('usuarios')
+                                ->join("roles","roles.id","=","usuarios.fk_id_rol")
+                                ->where(
+                                    "usuarios.id","=",$datos["datos"]->id
+                                    
+                                )
+                                ->select("usuarios.nombre_usuario",
+                                    "usuarios.apellido_usuario",
+                                    "usuarios.correo_usuario",
+                                    "usuarios.direccion_usuario",
+                                    "usuarios.documento_usuario",
+                                    "usuarios.telefono_usuario",
+                                    "usuarios.fecha_nacimiento",
+                                    "usuarios.fk_id_rol",
+                                    "roles.nombre_rol",
+                                    "usuarios.id",
+                                    "usuarios.password",
+                                    "usuarios.remember_token")
+                                ->get();
+            
+               $TK=Random::AlphaNumeric(12);  
+                
+                Usuario::where("id","=",$al[0]->id)->update(["updated_at"=>$datos["hora_cliente"],"ip_host"=>$mi_ip,"remember_token"=>$TK]);
+                
+
+                return response()->json(["mensaje"=>"Bienvenido,".$al[0]->nombre_usuario.", ","respuesta"=>TRUE,"datos"=>$al[0],"token"=>$TK]);    
+                
+    }
+     public function logout(Request $request){
+               
+
+
+
+            $datos=Util::decodificar_json($request->get("datos"));
+            //var_dump($datos["datos"]);
+            $al=DB::table('usuarios')
+                                
+                                ->where([
+                                    
+                                    "id","=",$datos["datos"]->id_usuario
+                                ])
+                                ->get();
+            
+            
+            
+                Usuario::where("id","=",$al[0]->id)->update(["updated_at"=>$datos["hora_cliente"],"ip_host"=>" ","remember_token"=>" "]);
+                
+
+                return response()->json(["mensaje"=>"Sesion finalizada ",
+                                          "respuesta"=>TRUE,
+                                          "datos"=>$al[0],"token"=>"0"]);    
+    
+               
     }
 
 
@@ -429,5 +496,71 @@ class UsuarioController extends Controller
       
     }
     
+
+    public function buscar_alumnos($id)
+    {
+         if($id=="*"){
+            $al=DB::table("usuarios")
+                        ->where("fk_id_rol","=","1")
+                        ->get();
+
+         }else{
+            $al=DB::table("usuarios")
+                        ->where([["id","=",$id],["fk_id_rol","=","1"]])
+                        ->orwhere([["usuarios.nombre_usuario","LIKE",$id."%"],["fk_id_rol","=","1"]])
+                        ->get();
+
+         }
+         
+        //consultar cursos
+        
+          $arr=array();
+          $i=0;
+          foreach ($al as $key => $value) {
+                    //var_dump($value);
+                    $arr[$i]=(array)$value;
+                    $arr[$i]["cursos"]=(array)DB::table("cursos")
+                                                ->join("detalle__usuario__cursos","detalle__usuario__cursos.fk_id_curso","=","cursos.id")
+                                                ->where('detalle__usuario__cursos.fk_id_usuario',"=",$value->id)
+                                                ->get();
+                                                $i++;
+                }      
+        
+        return response()->json(["datos"=>$arr,"mensaje"=>"Usuario encontrado","respuesta"=>TRUE]);
+    } 
+
+    public function buscar_profe($id)
+    {
+        //
+
+      if($id=="*"){
+          $al=DB::table("usuarios")
+                        ->where("fk_id_rol","=","2")                        
+                        ->get();
+
+      }else{
+        $al=DB::table("usuarios")
+                        ->where([["id","=",$id],["fk_id_rol","=","2"]])
+                        ->orwhere([["usuarios.nombre_usuario","LIKE",$id."%"],["fk_id_rol","=","2"]])
+                        ->get();
+
+      }
+         
+        //consultar cursos
+        
+          $arr=array();
+          $i=0;
+          foreach ($al as $key => $value) {
+                    //var_dump($value);
+                    $arr[$i]=(array)$value;
+                    $arr[$i]["cursos"]=(array)DB::table("cursos")
+                                                ->join("detalle__usuario__cursos","detalle__usuario__cursos.fk_id_curso","=","cursos.id")
+                                                ->where('detalle__usuario__cursos.fk_id_usuario',"=",$value->id)
+                                                ->get();
+                                                $i++;
+                }      
+        
+        return response()->json(["datos"=>$arr,"mensaje"=>"Usuario encontrado","respuesta"=>TRUE]);
+    }   
 
 }

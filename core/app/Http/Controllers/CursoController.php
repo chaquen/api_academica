@@ -185,6 +185,14 @@ class CursoController extends Controller
     public function show($id)
     {
         //
+        //var_dump(json_decode($_GET["datos"]));
+
+        
+     
+        if(Util::validar_token()){
+          return response()->json(["mensaje"=>"Ya haz iniciado sesión en otro dispositivo o navegador, en ese caso tu otra sesión ha caducado","expulsar"=>TRUE]);  
+        }
+
         //$cur=Curso::where("id","=",$id)->get();
         $val=explode("&",$id);
         $arr=[];
@@ -281,7 +289,112 @@ class CursoController extends Controller
         }    
         
     }
+    public function cursos_redimir_pin($id)
+    {
+        //
+        //var_dump(json_decode($_GET["datos"]));
 
+        
+     
+        
+
+        //$cur=Curso::where("id","=",$id)->get();
+        $val=explode("&",$id);
+        $arr=[];
+        $arr_final=[];
+        $i=0;
+        $e=0;
+
+        foreach ($val as $key => $value) {
+            //var_dump($value);
+
+            $arr[$i]=$value;
+           // var_dump($arr);
+            if($i==2){
+             
+                $arr[2].="%";
+              //var_dump($arr[$i]);
+                 
+              $arr_final[$e]=$arr;
+                 $e++;
+                 $arr=[];    
+                 $i=0;
+            }else{
+                 $i++;
+            }
+           
+        }
+       // var_dump($arr_final);
+        $cur=DB::table("cursos")
+                //->join("modulos","modulos.fk_id_curso","=","cursos.id")
+                //->join("","","=","") 
+                ->where($arr_final)
+               
+                ->get();
+            $arr_cur=array();    
+            $array_cursos=array();
+            $i=0;
+            foreach ($cur as $key => $value) {
+                $arr_cur[$i]=(array)$value;
+                $arr_cur[$i]["modulos"]=(array)DB::table("modulos")
+                //->join("modulos","modulos.fk_id_curso","=","cursos.id")
+                //->join("","","=","") 
+                ->where("modulos.fk_id_curso","=",$value->id)
+                ->get();   
+                 
+
+                //var_dump($arr_cur[$i]["modulos"]);
+                $i++;
+
+            }
+
+            foreach ($arr_cur as $key => $value) {
+              $arr=array();
+              $l=0;
+              foreach ($value["modulos"] as $k => $v) {
+                
+                //var_dump($v);
+                $arr_cur[$key]["modulos"][$l]=(array)$v;
+                //var_dump($arr_cur[$key]["modulos"]);
+                //var_dump($arr_cur[$key]["modulos"]);
+                //echo "<br>";
+                $l++;
+              }
+            }
+            //var_dump($arr_cur);
+
+            foreach ($arr_cur as $key => $value) {
+              $j=0;
+              //var_dump($value);
+              foreach ($value["modulos"] as $k => $va) {
+                  //var_dump($k);
+                  //var_dump($va["id"]);
+
+                 
+                    $arr_cur[$key]["modulos"][$j]["actividades"]=(array)DB::table('actividades')
+                            ->where("fk_id_modulo_curso","=",$va["id"])
+                            ->get();
+                        $j++;
+                  
+                      
+
+              }
+
+            }
+
+
+            //var_dump($arr_cur);
+            //echo "--";
+            $array_cursos=$arr_cur;
+            //var_dump($array_cursos);
+        if(count($array_cursos)>0){
+          return response()->json(["datos"=>$array_cursos,"mensaje"=>"Curso encontradas","respuesta"=>TRUE]);  
+        }else{
+          return response()->json(["mensaje"=>"Curso no encontradas","respuesta"=>FALSE]);  
+        }    
+        
+
+    }
     /**
      * Show the form for editing the specified resource.
      *
@@ -436,7 +549,7 @@ class CursoController extends Controller
                                     ]*/
  
     }
-    public function crear_pines($curso,$numero_pines){
+    public function crear_pines($curso,$numero_pines,$prefijo){
         
         $arr=[];
 
@@ -446,7 +559,7 @@ class CursoController extends Controller
 
               $pin=Random::AlphaNumeric(6);
               $arr[$i]=["fk_id_curso"=>$curso,
-                        "pin"=>$pin,
+                        "pin"=>$prefijo."-".$pin,
                         "estado"=>"activo",
                         "updated_at"=>Carbon::now("America/Bogota"),
                         "created_at"=>Carbon::now("America/Bogota")];
@@ -551,20 +664,18 @@ class CursoController extends Controller
               if($curso==0){
                 $dd=DB::table("pines")
                   ->join("cursos","cursos.id","=","pines.fk_id_curso")
-                  ->select("cursos.nombre_curso",
-                            "pines.id",
-                            "pines.pin",
-                            "pines.estado")
+                  ->select("cursos.nombre_curso as NOMBRE CURSO",
+                            "pines.pin as PIN",
+                            "pines.estado as ESTADO PIN")
                   ->get();
                 
               }else{
                 $dd=DB::table("pines")
                  ->join("cursos","cursos.id","=","pines.fk_id_curso")
                   ->where("fk_id_curso","=",$curso)
-                  ->select("cursos.nombre_curso",
-                            "pines.id",
-                            "pines.pin",
-                            "pines.estado")
+                  ->select("cursos.nombre_curso as NOMBRE CURSO",
+                            "pines.pin as PIN",
+                            "pines.estado as ESTADO PIN")
                   ->get();
                
               }
@@ -578,12 +689,18 @@ class CursoController extends Controller
                 $dd=DB::table("pines")
                ->join("cursos","cursos.id","=","pines.fk_id_curso")
                 ->where([["pin","=",$pin]])
+                ->select("cursos.nombre_curso as NOMBRE CURSO",
+                            "pines.pin as PIN",
+                            "pines.estado as ESTADO PIN")
                 ->get();
  
               }else{
                 $dd=DB::table("pines")
                 ->join("cursos","cursos.id","=","pines.fk_id_curso")
                 ->where([["pin","=",$pin],["fk_id_curso","=",$curso]])
+                ->select("cursos.nombre_curso as NOMBRE CURSO",
+                            "pines.pin as PIN",
+                            "pines.estado as ESTADO PIN")
                 ->get();
 
               }
@@ -592,32 +709,55 @@ class CursoController extends Controller
                
             
       }
-      var_dump($dd);
+ 
         $arr=[];
+      
         foreach ($dd as $key => $value) {
           $arr[$key]=(array)$value;
           
+
         }
-        //var_dump(trim(substr(base_path(),0,-4)."recursos\ ")."exportacion");
-                    Excel::create("pines", function($excel) use($arr){
+      
+    if(count($dd)>0){
+                Excel::create("pines_".$curso, function($excel) use($arr){
                          // use($datos->datos->nombre_reporte)   
                         $excel->sheet('pines',function($sheet) use($arr){
-                                //var_dump($id);
-                                /*$datos=Producto::where('nombre_producto','LIKE','A%')
-                                                                        ->limit('10')
-                                                                        ->get();*/
-
-                                //var_dump($reporte["datos"]);
+                                //var_dump($arr);
                            
                                 $sheet->fromArray($arr);
                         });
-                    })->store('xls', trim(substr(base_path(),0,-4)."recursos\ ")."exportacion");
+                    })->store('xls', trim(substr(base_path(),0,-4)."recursos_para_exportar"));
 
-    if(count($dd)>0){
-         return response()->json(["mensaje"=>"Pin encontrado ","respuesta"=>true,"curso"=>$dd[0]->fk_id_curso,"datos"=>$dd,"archivo"=>"pines.xls"]);   
+         return response()->json(["archivo"=>"pines_".$curso.".xls","mensaje"=>"Pin encontrado ","respuesta"=>true,"curso"=>$curso,"datos"=>$dd]);   
     }else{
          return response()->json(["mensaje"=>"Pin NO  es valido","respuesta"=>false]);
     } 
               
    }
+
+
+   public function activar_curso_pin($id_usuario,$id_curso){
+
+            $cc=DB::table("cursos")
+                ->join("modulos","modulos.fk_id_curso","=","cursos.id")
+                ->join("actividades","actividades.fk_id_modulo_curso","=","modulos.id")
+                ->where("cursos.id",$id_curso)
+                ->select("actividades.id")
+                ->get();
+            
+            //var_dump($id_usuario);
+                
+            foreach ($cc as $key => $value) {
+
+              //var_dump($value->id);
+                DB::table("detalle_evaluacion_usuario")
+                    ->insert(["fk_id_usuario"=>$id_usuario,"fk_id_evaluacion"=>$value->id]);    
+            }
+
+            return response()->json(["mensaje"=>"Gracias por confirmar, ahora puedes disfrutar de nuestro espectacular curso","respuesta"=>true]);   
+
+   }
+
+
+
 }
