@@ -415,9 +415,22 @@ class UsuarioController extends Controller
 
     public function alumnos_del_curso($id_curso){
         $us=Usuario::join("detalle__usuario__cursos","detalle__usuario__cursos.fk_id_usuario","=","usuarios.id")
-                ->where("detalle__usuario__cursos.fk_id_curso","=",$id_curso)
+                ->where([
+                          ["detalle__usuario__cursos.fk_id_curso","=",$id_curso],
+                          ["usuarios.fk_id_rol","=","1"]
+                      ])
+                ->select("usuarios.nombre_usuario",
+                                    "usuarios.apellido_usuario",
+                                    "usuarios.correo_usuario",
+                                    "usuarios.direccion_usuario",
+                                    "usuarios.documento_usuario",
+                                    "usuarios.telefono_usuario",
+                                    "usuarios.fecha_nacimiento",
+                                    "usuarios.fk_id_rol",
+                                   
+                                    "usuarios.id")
                 ->get();
-                
+         //var_dump($us);       
         return response()->json(["mensaje"=>"Alumnos encontrados","respuesta"=>TRUE,"datos"=>$us,"curso"=>DB::table("cursos")->where("id",$id_curso)->get()]);    
     } 
 

@@ -24,6 +24,7 @@ use App\Functions\Random;
 
 use Maatwebsite\Excel\Facades\Excel;
 
+use App\views;
 
 class CursoController extends Controller
 {
@@ -736,13 +737,17 @@ class CursoController extends Controller
    }
 
 
-   public function activar_curso_pin($id_usuario,$id_curso){
+   public function activar_curso_pin($id_usuario,$id_curso){  
 
+          //
+            $uu=DB::table("usuarios")
+                ->where("id",$id_usuario)
+                ->get();  
             $cc=DB::table("cursos")
                 ->join("modulos","modulos.fk_id_curso","=","cursos.id")
                 ->join("actividades","actividades.fk_id_modulo_curso","=","modulos.id")
                 ->where("cursos.id",$id_curso)
-                ->select("actividades.id")
+                ->select("actividades.id","cursos.nombre_curso")
                 ->get();
             
             //var_dump($id_usuario);
@@ -750,14 +755,22 @@ class CursoController extends Controller
             foreach ($cc as $key => $value) {
 
               //var_dump($value->id);
-                DB::table("detalle_evaluacion_usuario")
-                    ->insert(["fk_id_usuario"=>$id_usuario,"fk_id_evaluacion"=>$value->id]);    
+                $d=DB::table("detalle_evaluacion_usuario")
+                    ->where(["fk_id_usuario"=>$id_usuario,"fk_id_evaluacion"=>$value->id])
+                    ->get();
+                if(count($d)==0){
+                    DB::table("detalle_evaluacion_usuario")
+                      ->insert(["fk_id_usuario"=>$id_usuario,"fk_id_evaluacion"=>$value->id]);    
+                }
+                
             }
+            
 
-            return response()->json(["mensaje"=>"Gracias por confirmar, ahora puedes disfrutar de nuestro espectacular curso","respuesta"=>true]);   
+
+            return \View::make('vistas.agradecimiento_activa_pin', array('nombre_usuario' => $uu[0]->nombre_usuario." ".$uu[0]->apellido_usuario,"nombre_curso"=>$cc[0]->nombre_curso));
 
    }
 
-
+   
 
 }

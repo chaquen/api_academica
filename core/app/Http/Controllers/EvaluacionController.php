@@ -249,12 +249,18 @@ class EvaluacionController extends Controller
 
          
             //var_dump($e);
-         $rr=DB::table("respuestas_del_usuarios")
+         /*$rr=DB::table("respuestas_del_usuarios")
             ->join("evaluaciones","evaluaciones.id","=","respuestas_del_usuarios.fk_id_evaluaciones")
             ->where([["respuestas_del_usuarios.fk_id_usuario","=",$id_usuario],["evaluaciones.fk_id_actividad","=",$id_evaluacion]])
-            ->get();
+            ->get();*/
+            $rr=DB::table("detalle_evaluacion_usuario")
+                    ->where([
+                                ["fk_id_usuario",$id_usuario],
+                                ["fk_id_evaluacion",$id_evaluacion]
+                            ])
+                    ->get();
           //var_dump($rr);  
-         if(count($rr)==0){
+         if($rr[0]->num_intentos < 1){
                  $e=Evaluaciones::where("actividades.id","=",$id_evaluacion)
                             ->join("actividades","actividades.id","=","evaluaciones.fk_id_actividad")   
                             ->select("evaluaciones.id","evaluaciones.tipo_evaluacion","evaluaciones.fk_id_actividad","evaluaciones.fecha_evaluacion_inicio","evaluaciones.fecha_evaluacion_fin","evaluaciones.estado_evaluacion")

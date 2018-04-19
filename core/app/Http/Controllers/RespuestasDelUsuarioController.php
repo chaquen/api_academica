@@ -125,9 +125,36 @@ class RespuestasDelUsuarioController extends Controller
           
          
         }
+        $evv=DB::table("detalle_evaluacion_usuario")
+            ->where([
+                    ["fk_id_usuario",$datos["datos"]->usuario],
+                    ["fk_id_evaluacion",$datos["datos"]->evaluacion]
+                    ])
+            ->get();
+        if(count($evv)>0){
+            DB::table("detalle_evaluacion_usuario")
+               
+                ->where([
+                    ["fk_id_usuario",$datos["datos"]->usuario],
+                    ["fk_id_evaluacion",$datos["datos"]->evaluacion]
+                    ])      
+                 ->update(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->evaluacion,"nota_evaluacion"=>$nota]);
 
-        DB::table("detalle_evaluacion_usuario")
-                ->insert(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->evaluacion,"nota_evaluacion"=>$nota]);    
+
+        }else{
+            DB::table("detalle_evaluacion_usuario")
+                ->insert(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->evaluacion,"nota_evaluacion"=>$nota]);        
+
+            
+        }
+
+        DB::table('detalle_evaluacion_usuario')                    
+                    ->where([
+                    ["fk_id_usuario",$datos["datos"]->usuario],
+                    ["fk_id_evaluacion",$datos["datos"]->evaluacion]
+                    ])
+                    ->increment('num_intentos');
+        
         return response()->json(["mensaje"=>"Haz finalizado, gracias por participar","respuesta"=>true]);
 
     }

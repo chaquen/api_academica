@@ -242,4 +242,45 @@ class ActividadController extends Controller
             return response()->json(["mensaje"=>"Notas NO encontradas","respuesta"=>false]);
         }    
     }
+
+    public function subir_archivo_actividad (Request $request){
+       $datos=json_decode($request->get("datos"));
+       
+       
+        $des=substr(base_path(),0,-5)."/actividades/".$datos->datos->usuario."/".$datos->datos->curso."/".$datos->datos->actividad;        
+        $file=$request->file('miArchivo');
+        //var_dump($des); 
+        if($file->move($des,$datos->datos->nombre_archivo)){
+            return response()->json(["mensaje"=>"ARCHIVO GUARDADO","respuesta"=>true,"ruta"=>trim("actividades/ ").$datos->datos->nombre_archivo]);
+        }else{
+            return response()->json(["mensaje"=>"No se a podido subir el archivo","respuesta"=>true]);
+        }
+   }
+
+
+   public function actividades_del_usuario($usuario,$curso,$actividad){
+        $ruta=$des=substr(base_path(),0,-5)."/actividades/".$usuario."/".$curso."/".$actividad;  
+        //var_dump($ruta);        
+        $arr=array();
+        //Abrir directorio y listarlo
+        if(is_dir($ruta)){
+            if($dh=  opendir($ruta)){
+                $i=0;                
+               // $arr=  scandir($ruta);
+                while(($archivo=  readdir($dh))!== false){
+                    //var_dump($dh);
+                    //var_dump($archivo);
+                    if($archivo!="." && $archivo!=".."){
+                        $arr[$i]=$archivo;
+                        $i++;
+                    }
+                    
+                }
+                return response()->json(["respuesta"=>true,"mensaje"=>"ok","datos"=>$arr]);
+            }
+            closedir($dh);
+        }else{
+            return response()->json(["respuesta"=>false,"mensaje"=>"ruta no existe"]);
+        }
+   }
 }

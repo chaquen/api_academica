@@ -38,7 +38,7 @@ Route::get("consulta_inicial/{id}",function($id){
 });
 Route::get("consulta_inicial_alumno/{usuario}",function($usuario){
 
-
+				//var_dump($usuario);
 				if(Util::validar_token()){
 		          
 		          echo json_encode(["mensaje"=>"Ya haz iniciado sesión en otro dispositivo o navegador, en ese caso tu otra sesión ha caducado","expulsar"=>TRUE]); 
@@ -144,3 +144,5 @@ Route::get("ver_notas_actividades/{id_usuario}","ActividadController@ver_notas_a
 Route::get("validar_usuario/{cc}","UsuarioController@validar_usuario");
 Route::get("activar_curso_pin/{id_usuario}/{id_curso}","CursoController@activar_curso_pin");
 Route::post("sobre_escribir_tk","UsuarioController@sobre_escribir_tk");
+Route::post("subir_archivo_actividad","ActividadController@subir_archivo_actividad");
+Route::get("actividades_del_usuario/{usuario}/{curso}/{actividad}","ActividadController@actividades_del_usuario");
