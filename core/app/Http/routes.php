@@ -146,3 +146,4 @@ Route::get("activar_curso_pin/{id_usuario}/{id_curso}","CursoController@activar_
 Route::post("sobre_escribir_tk","UsuarioController@sobre_escribir_tk");
 Route::post("subir_archivo_actividad","ActividadController@subir_archivo_actividad");
 Route::get("actividades_del_usuario/{usuario}/{curso}/{actividad}","ActividadController@actividades_del_usuario");
+Route::get("validar_actividad_anterior/{curso}/{actividad}/{usuario}","ActividadController@validar_actividad_anterior");

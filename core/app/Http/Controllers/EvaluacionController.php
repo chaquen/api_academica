@@ -6,11 +6,11 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-use App\Models\Evaluaciones;
-
 use App\Models\PreguntasEvaluacion;
 
 use App\Models\Respuestas;
+
+use App\Models\Actividades;
 
 use App\Functions\Util;
 
@@ -54,16 +54,11 @@ class EvaluacionController extends Controller
          //var_dump($datos["datos"]);
          //var_dump($datos["datos"]->fk_id_actividad);
          $ac=DB::table("actividades")->where("id","=",$datos["datos"]->fk_id_actividad)->get();
-        
+         $ac_id;
         if(count($ac)>0){
-            $e=Evaluaciones::create([
+           
 
-                                    "tipo_evaluacion"=>$datos["datos"]->tipo_evaluacion,
-                                    "fk_id_actividad"=>$datos["datos"]->fk_id_actividad,
-                                    "fecha_evaluacion_inicio"=>$datos["datos"]->fecha_evaluacion_inicio,
-                                    "fecha_evaluacion_fin"=>$datos["datos"]->fecha_evaluacion_fin
-                                                                    
-                                ]);
+            
             //registrar las preguntas
             //var_dump($e);
             foreach ($datos["datos"]->preguntas as $key => $value) {
@@ -71,22 +66,17 @@ class EvaluacionController extends Controller
                    
                     PreguntasEvaluacion::create([
                         "fk_id_pregunta"=>$value[0]->id,
-                        "fk_id_evaluacion"=>$e->id,
+                        "fk_id_evaluacion"=>$ac[0]->id,
                     ]);
             }    
+            $ac_id=$ac[0]->id;
+
         }else{
 
              $ac=DB::table("actividades")
                 ->InsertGetId(["nombre_actividad"=>$datos["datos"]->nombre_evaluacion,"tipo_actividad"=>"evaluacion","activo_desde"=>$datos["datos"]->fecha_evaluacion_inicio,"activo_hasta"=>$datos["datos"]->fecha_evaluacion_fin,"actividad_recurso"=>"","fk_id_modulo_curso"=>$datos["datos"]->fk_id_modulo_curso]);
              //var_dump($ac);   
-             $e=Evaluaciones::firstOrCreate([
-
-                                    "tipo_evaluacion"=>$datos["datos"]->tipo_evaluacion,
-                                    "fk_id_actividad"=>$ac,
-                                    "fecha_evaluacion_inicio"=>$datos["datos"]->fecha_evaluacion_inicio,
-                                    "fecha_evaluacion_fin"=>$datos["datos"]->fecha_evaluacion_fin
-                                                                    
-                                ]);
+           
             //registrar las preguntas
             
             foreach ($datos["datos"]->preguntas as $key => $value) {
@@ -94,14 +84,15 @@ class EvaluacionController extends Controller
                    
                     PreguntasEvaluacion::create([
                         "fk_id_pregunta"=>$value[0]->id,
-                        "fk_id_evaluacion"=>$e->id,
+                        "fk_id_evaluacion"=>$ac->id,
                     ]);
-            }   
+            }  
+            $ac_id =$ac->id;
         } 
         
        
 
-        return response()->json(["mensaje"=>"Evaluación ".$datos["datos"]->nombre_evaluacion.", creada correctamente","id"=>$e->id]);
+        return response()->json(["mensaje"=>"Evaluación ".$datos["datos"]->nombre_evaluacion.", creada correctamente","id"=>$ac_id]);
     }
 
     /**
@@ -113,7 +104,7 @@ class EvaluacionController extends Controller
     public function show($id)
     {
         //
-        $e=Evaluaciones::where("fk_id_actividad","=",$id)->get();
+        $e=Actividades::where("id","=",$id)->get();
         //var_dump($e);
           $arr=[];   
           $i=0;       
@@ -173,7 +164,7 @@ class EvaluacionController extends Controller
     {
         //
          $datos=Util::decodificar_json($request->get("datos"));
-        Evaluaciones::where("id",$id)
+        Actividades::where("id",$id)
                             ->update([
                                     
                                     "tipo_evaluacion"=>$datos["datos"]->tipo_evaluacion,
@@ -194,7 +185,7 @@ class EvaluacionController extends Controller
     public function destroy($id)
     {
         $datos=Util::decodificar_json($request->get("datos"));
-        $e=Evaluaciones::where("id",$id);
+        $e=Actividades::where("id",$id);
         if($e->estado_evaluacion==1){
             Categorias_Cursos::where("id",$id)
                             ->where("estado_evaluacion","=",1)
@@ -212,16 +203,16 @@ class EvaluacionController extends Controller
     public function evaluaciones_por_curso($id_curso){
         $eval=DB::table("actividades")
             ->join("modulos","modulos.id","=","actividades.fk_id_modulo_curso")
-            ->join("evaluaciones","evaluaciones.fk_id_actividad","=","actividades.id")
+            //->join("evaluaciones","evaluaciones.fk_id_actividad","=","actividades.id")
             ->where("modulos.fk_id_curso","=",$id_curso)
             ->get();
          return response()->json(["mensaje"=>"Evaluacion encontrada","respuesta"=>true,"datos"=>$eval]);                                                
     }
     public function resultado_evaluacion($id_evaluacion,$id_alumno){
-        $eva=DB::table("evaluaciones")
-                ->join("preguntas_evaluacions","preguntas_evaluacions.fk_id_evaluacion","=","evaluaciones.id")
+        $eva=DB::table("actividades")
+                ->join("preguntas_evaluacions","preguntas_evaluacions.fk_id_evaluacion","=","actividades.id")
                 ->join("preguntas","preguntas.id","=","preguntas_evaluacions.fk_id_pregunta")
-                ->where("evaluaciones.id","=",$id_evaluacion)
+                ->where("actividades.id","=",$id_evaluacion)
                 ->select("preguntas.id","preguntas.argumento_pregunta","preguntas_evaluacions.id as id_pregunta","preguntas.tipo_pregunta")
                 ->get();                
         $arr=[];
@@ -261,9 +252,8 @@ class EvaluacionController extends Controller
                     ->get();
           //var_dump($rr);  
          if($rr[0]->num_intentos < 1){
-                 $e=Evaluaciones::where("actividades.id","=",$id_evaluacion)
-                            ->join("actividades","actividades.id","=","evaluaciones.fk_id_actividad")   
-                            ->select("evaluaciones.id","evaluaciones.tipo_evaluacion","evaluaciones.fk_id_actividad","evaluaciones.fecha_evaluacion_inicio","evaluaciones.fecha_evaluacion_fin","evaluaciones.estado_evaluacion")
+                 $e=Actividades::where("id","=",$id_evaluacion)
+                            ->select("actividades.id","actividades.tipo_actividad","actividades.activo_desde","actividades.activo_hasta","actividades.estado_actividad")
                             ->get();   
                  $arr=[];   
                  $i=0;       

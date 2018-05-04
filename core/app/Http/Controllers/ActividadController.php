@@ -221,11 +221,33 @@ class ActividadController extends Controller
             return response()->json(["mensaje"=>"Actividades NO encontrados","respuesta"=>false]);
         }    
     }
+    public function subir_archivo_actividad (Request $request){
+       $datos=json_decode($request->get("datos"));
+        //var_dump($datos->datos->usuario);
+        //var_dump($datos->datos->actividad);
+       DB::table("detalle_evaluacion_usuario")
+                ->where([
+                        ["fk_id_usuario",$datos->datos->usuario],
+                        ["fk_id_evaluacion",$datos->datos->actividad]
+                    ])
+                ->update(["fk_id_usuario"=>$datos->datos->usuario,"fk_id_evaluacion"=>$datos->datos->actividad,"nota_evaluacion"=>"0","estado"=>"pendiente_califar"]);
+                
+        $des=substr(base_path(),0,-5)."/actividades/".$datos->datos->usuario."/".$datos->datos->curso."/".$datos->datos->actividad;        
+        $file=$request->file('miArchivo');
+        //var_dump($des); 
+        if($file->move($des,$datos->datos->nombre_archivo)){
+            return response()->json(["mensaje"=>"ARCHIVO GUARDADO","respuesta"=>true,"ruta"=>trim("actividades/ ").$datos->datos->nombre_archivo]);
+        }else{
+            return response()->json(["mensaje"=>"No se a podido subir el archivo","respuesta"=>true]);
+        }
+   }
 
     public function registrar_nota(Request $request){
         $datos=Util::decodificar_json($request->get("datos"));
         DB::table("detalle_evaluacion_usuario")
-                ->insert(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->actividad,"num_intentos"=>"1","nota_evaluacion"=>$datos["datos"]->nota]);
+                ->where([["fk_id_usuario",$datos["datos"]->usuario],["fk_id_evaluacion",$datos["datos"]->actividad]])
+                ->update(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->actividad,"num_intentos"=>"1","nota_evaluacion"=>$datos["datos"]->nota,"estado"=>"calificada"]);
+                
         return response()->json(["mensaje"=>"Actividad calificada","respuesta"=>true]);                
     }
 
@@ -243,24 +265,19 @@ class ActividadController extends Controller
         }    
     }
 
-    public function subir_archivo_actividad (Request $request){
-       $datos=json_decode($request->get("datos"));
-       
-       
-        $des=substr(base_path(),0,-5)."/actividades/".$datos->datos->usuario."/".$datos->datos->curso."/".$datos->datos->actividad;        
-        $file=$request->file('miArchivo');
-        //var_dump($des); 
-        if($file->move($des,$datos->datos->nombre_archivo)){
-            return response()->json(["mensaje"=>"ARCHIVO GUARDADO","respuesta"=>true,"ruta"=>trim("actividades/ ").$datos->datos->nombre_archivo]);
-        }else{
-            return response()->json(["mensaje"=>"No se a podido subir el archivo","respuesta"=>true]);
-        }
-   }
+    
 
 
    public function actividades_del_usuario($usuario,$curso,$actividad){
         $ruta=$des=substr(base_path(),0,-5)."/actividades/".$usuario."/".$curso."/".$actividad;  
-        //var_dump($ruta);        
+        //var_dump($ruta);     
+
+        $nota=DB::table("detalle_evaluacion_usuario")
+            ->where([["fk_id_usuario",$usuario],["fk_id_evaluacion",$actividad]])
+            ->get();
+        //var_dump($nota);    
+        //var_dump($usuario);    
+        //var_dump($actividad);    
         $arr=array();
         //Abrir directorio y listarlo
         if(is_dir($ruta)){
@@ -276,11 +293,56 @@ class ActividadController extends Controller
                     }
                     
                 }
-                return response()->json(["respuesta"=>true,"mensaje"=>"ok","datos"=>$arr]);
+                return response()->json(["respuesta"=>true,"mensaje"=>"ok","datos"=>$arr,"nota"=>$nota[0]]);
             }
             closedir($dh);
+            
         }else{
-            return response()->json(["respuesta"=>false,"mensaje"=>"ruta no existe"]);
+            return response()->json(["respuesta"=>false,"mensaje"=>"ruta no existe","nota"=>$nota[0]]);
         }
+   }
+
+   public function  validar_actividad_anterior($curso,$actividad,$usuario){
+     //aqui debe validar la actividad anteriora laque se quiere hacer y validar que este o pendiente por calificar o calificada
+    //var_dump($curso);
+    //var_dump($actividad);
+
+     $ac=DB::table("actividades")
+        ->join("modulos","modulos.id","=","actividades.fk_id_modulo_curso")
+        ->join("cursos","cursos.id","=","modulos.fk_id_curso")
+        ->join("detalle_evaluacion_usuario","detalle_evaluacion_usuario.fk_id_evaluacion","=","actividades.id")
+        ->where([["cursos.id",$curso],["actividades.id",$actividad],["detalle_evaluacion_usuario.fk_id_usuario",$usuario]])
+        ->select("actividades.numero_actividad","detalle_evaluacion_usuario.estado")
+        ->get();
+
+
+     //var_dump((int)$ac[0]->numero_actividad);
+     $an=((int)$ac[0]->numero_actividad) - 1;
+     if($an==0){
+            //es la primera actividad puede verla
+        return response()->json(["respuesta"=>true,"mensaje"=>"puedes continuar"]);
+     }else{
+        $ac2=DB::table("actividades")
+        ->join("modulos","modulos.id","=","actividades.fk_id_modulo_curso")
+        ->join("cursos","cursos.id","=","modulos.fk_id_curso")
+        ->join("detalle_evaluacion_usuario","detalle_evaluacion_usuario.fk_id_evaluacion","=","actividades.id")
+        ->where([
+                    ["cursos.id",$curso],
+                    ["actividades.numero_actividad",$an],
+                    ["detalle_evaluacion_usuario.fk_id_usuario",$usuario]
+                ])
+        ->select("actividades.numero_actividad","detalle_evaluacion_usuario.estado")
+        ->get();
+        
+        if($ac2[0]->estado=="calificada" ||  $ac2[0]->estado=="pendiente_calificar"){
+            //  var_dump($ac2);        
+                //puedes continuar 
+            return response()->json(["respuesta"=>true,"mensaje"=>"puedes continuar"]);
+        }else if($ac2[0]->estado=="pendiente" || $ac2[0]->estado=="vencida"){
+            //No puedes continuar
+            return response()->json(["respuesta"=>false,"mensaje"=>"debes terminar la actividad anterior"]);        
+        }
+        
+     }  
    }
 }

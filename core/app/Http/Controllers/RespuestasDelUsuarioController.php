@@ -46,7 +46,7 @@ class RespuestasDelUsuarioController extends Controller
         $nota=0;
         //var_dump($datos["datos"]);
         $i=0;
-        $ev= DB::table("evaluaciones")->where("fk_id_actividad",$datos["datos"]->evaluacion)->select("id")->get();
+        $ev= DB::table("actividades")->where("id",$datos["datos"]->evaluacion)->select("id")->get();
         foreach ($datos["datos"]->preguntas as $key => $value) {
             //var_dump($value);
            $arr=[];    
@@ -138,12 +138,12 @@ class RespuestasDelUsuarioController extends Controller
                     ["fk_id_usuario",$datos["datos"]->usuario],
                     ["fk_id_evaluacion",$datos["datos"]->evaluacion]
                     ])      
-                 ->update(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->evaluacion,"nota_evaluacion"=>$nota]);
+                 ->update(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->evaluacion,"nota_evaluacion"=>$nota,"estado"=>"pendiente_calificar"]);
 
 
         }else{
             DB::table("detalle_evaluacion_usuario")
-                ->insert(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->evaluacion,"nota_evaluacion"=>$nota]);        
+                ->insert(["fk_id_usuario"=>$datos["datos"]->usuario,"fk_id_evaluacion"=>$datos["datos"]->evaluacion,"nota_evaluacion"=>$nota,"estado"=>"pendiente_calificar"]);        
 
             
         }

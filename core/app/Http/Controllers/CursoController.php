@@ -88,6 +88,7 @@ class CursoController extends Controller
 
                     if(mkdir("recursos/cursos/".$cur->id, 0777)){
                         $i=1;
+                        $j=1;
                         foreach ($datos["datos"]->modulos as $key => $value) {
                             //AQUI REGISTRAR MODULOS
                             //AQUI REGISTRAR RECURSOS DEL MODULO
@@ -111,12 +112,18 @@ class CursoController extends Controller
                                                     "activo_desde"=>$v->activo_desde,
                                                     "activo_hasta"=>$v->activo_hasta,
                                                     "actividad_recurso"=>$v->recurso,
-                                                    "fk_id_modulo_curso"=>$mod->id]);    
+                                                    "fk_id_modulo_curso"=>$mod->id,
+                                                    "numero_actividad"=> $j++]);    
                                     }else{
-                                        Evaluaciones::create(["tipo_evaluacion"=>"examen",
-                                                              "fk_id_actividad"=>$cur->id,
-                                                              "fecha_evaluacion_inicio"=>$v->activo_desde,
-                                                              "fecha_evaluacion_fin"=>$v->activo_hasta]);
+                                      Actividades::create(["nombre_actividad"=>$v->contenido,
+                                                    "tipo_actividad"=>$v->tipo_recurso,
+                                                    "activo_desde"=>$v->activo_desde,
+                                                    "activo_hasta"=>$v->activo_hasta,
+                                                    "actividad_recurso"=>$v->recurso,
+                                                    "fk_id_modulo_curso"=>$mod->id,
+                                                    "numero_actividad"=> $j++]);  
+
+                                        
                                     }
                                     
                                 }
@@ -131,6 +138,7 @@ class CursoController extends Controller
                 }else{
 
                      $i=1;
+                      $j=1;
                         foreach ($datos["datos"]->modulos as $key => $value) {
                             //AQUI REGISTRAR MODULOS
                             //AQUI REGISTRAR RECURSOS DEL MODULO
@@ -154,12 +162,19 @@ class CursoController extends Controller
                                                     "activo_desde"=>$v->activo_desde,
                                                     "activo_hasta"=>$v->activo_hasta,
                                                     "actividad_recurso"=>$v->recurso,
-                                                    "fk_id_modulo_curso"=>$mod->id]);    
+                                                    "fk_id_modulo_curso"=>$mod->id,
+                                                    "numero_actividad"=> $j++]);    
                                     }else{
-                                        Evaluaciones::create(["tipo_evaluacion"=>"examen",
-                                                              "fk_id_actividad"=>$cur->id,
-                                                              "fecha_evaluacion_inicio"=>$v->activo_desde,
-                                                              "fecha_evaluacion_fin"=>$v->activo_hasta]);
+
+                                        Actividades::create(["nombre_actividad"=>$v->contenido,
+                                                    "tipo_actividad"=>$v->tipo_recurso,
+                                                    "activo_desde"=>$v->activo_desde,
+                                                    "activo_hasta"=>$v->activo_hasta,
+                                                    "actividad_recurso"=>$v->recurso,
+                                                    "fk_id_modulo_curso"=>$mod->id,
+                                                    "numero_actividad"=> $j++]);    
+
+                                        
                                     }
                                     
                                 }
@@ -269,6 +284,7 @@ class CursoController extends Controller
                  
                     $arr_cur[$key]["modulos"][$j]["actividades"]=(array)DB::table('actividades')
                             ->where("fk_id_modulo_curso","=",$va["id"])
+                            ->orderBy('numero_actividad')  
                             ->get();
                         $j++;
                   
