@@ -230,7 +230,7 @@ class ActividadController extends Controller
                         ["fk_id_usuario",$datos->datos->usuario],
                         ["fk_id_evaluacion",$datos->datos->actividad]
                     ])
-                ->update(["fk_id_usuario"=>$datos->datos->usuario,"fk_id_evaluacion"=>$datos->datos->actividad,"nota_evaluacion"=>"0","estado"=>"pendiente_califar"]);
+                ->update(["fk_id_usuario"=>$datos->datos->usuario,"fk_id_evaluacion"=>$datos->datos->actividad,"nota_evaluacion"=>"0","estado"=>"pendiente_calificar"]);
                 
         $des=substr(base_path(),0,-5)."/actividades/".$datos->datos->usuario."/".$datos->datos->curso."/".$datos->datos->actividad;        
         $file=$request->file('miArchivo');
@@ -316,7 +316,7 @@ class ActividadController extends Controller
         ->get();
 
 
-     //var_dump((int)$ac[0]->numero_actividad);
+     //var_dump($ac);
      $an=((int)$ac[0]->numero_actividad) - 1;
      if($an==0){
             //es la primera actividad puede verla
